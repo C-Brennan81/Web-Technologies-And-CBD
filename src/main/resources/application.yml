@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: team-1-group-project
+  datasource:
+    url: jdbc:mysql://localhost:3306/basedata
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: create
+    defer-datasource-initialization: true
+    show-sql: true
+  sql:
+    init:
+      mode: always
+server:
+  port: 8081
+  error:
+    include-stacktrace: always
+    include-exception: true
+logging:
+  file:
+    name: logs/import-validation.log
+  level:
+    root: ERROR
+    com.tus.services: INFO
+
+
