@@ -35,6 +35,8 @@ public class Game {
 
     private Double communityScore;
 
+    @Column(length = 500)
+    private String coverUrl;
 
     @Column(name = "purchase_price")
     private Double purchasePrice;
@@ -48,4 +50,9 @@ public class Game {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    public String getCoverUrl() { return coverUrl; }
+    public void setCoverUrl(String coverUrl) { this.coverUrl = coverUrl; }
+
 }
+
