@@ -1,8 +1,8 @@
 spring:
   application:
-    name: team-1-group-project
+    name: gamingStats
   datasource:
-    url: jdbc:mysql://localhost:3306/basedata
+    url: jdbc:mysql://localhost:3306/gamingstats
     username: root
     password: root
   jpa:

@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    // Initialize DataTable for US-05 & US-06 [cite: 137, 140]
+    // 1. Initialize the DataTable (US-05 & US-06)
     const table = $('#gamesTable').DataTable({
         ajax: {
             url: '/api/games',
@@ -8,24 +8,42 @@ $(document).ready(function() {
         columns: [
             { data: 'title' },
             { data: 'genre' },
-            { data: 'launcherName' }, // From our DTO [cite: 22]
             { data: 'status' },
+            { data: 'launcherName' },
             {
                 data: 'purchasePrice',
-                render: function(data) { return '€' + data.toFixed(2); }
-            },
-            {
-                // Action button for US-07 (Modals) [cite: 151, 153]
-                data: null,
-                defaultContent: '<button class="btn btn-info btn-sm view-btn">View</button>'
+                render: function(data) {
+                    if (data === null || data === undefined) return '';
+                    return '£' + Number(data).toFixed(2);
+                }
             }
         ]
     });
 
-    // Handle the "View" button click for Modals [cite: 35, 152]
-    $('#gamesTable').on('click', '.view-btn', function() {
-        const data = table.row($(this).parents('tr')).data();
-        alert('Details for: ' + data.title + '\nStatus: ' + data.status);
-        // In the next step, we will replace this alert with a real Bootstrap Modal
+    // 2. Handle the CSV Upload (US-03 & US-04)
+    $('#uploadForm').on('submit', function(e) {
+        e.preventDefault();
+
+        let formData = new FormData();
+        formData.append('file', $('#gameFile')[0].files[0]);
+
+        $('#uploadStatus').html('<div class="text-info">Uploading...</div>');
+
+        $.ajax({
+            url: '/api/games/upload',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                // US-04: Clear notification on successd
+                $('#uploadStatus').html('<div class="alert alert-success">' + response + '</div>');
+                table.ajax.reload(); // Refresh the table to show new games
+            },
+            error: function(xhr) {
+                // US-04: Clear notification on error
+                $('#uploadStatus').html('<div class="alert alert-danger">' + xhr.responseText + '</div>');
+            }
+        });
     });
 });
