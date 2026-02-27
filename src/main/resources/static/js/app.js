@@ -1,5 +1,69 @@
 $(document).ready(function () {
 
+    const API = '';
+    const TOKEN_KEY = 'jwtToken';
+
+    function getToken() {
+        return localStorage.getItem(TOKEN_KEY);
+    }
+
+    function setToken(token) {
+        localStorage.setItem(TOKEN_KEY, token);
+    }
+
+    function clearToken() {
+        localStorage.removeItem(TOKEN_KEY);
+    }
+
+    async function apiFetch(url, options = {}) {
+        const token = getToken();
+        const headers = options.headers ? { ...options.headers } : {};
+
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        return fetch(API + url, { ...options, headers });
+    }
+
+    async function registerUser(username, password) {
+        const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const text = await res.text();
+        if (!res.ok) throw new Error(text || 'Register failed');
+        return text;
+    }
+
+    async function loginUser(username, password) {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || 'Login failed');
+        }
+
+        const data = await res.json();
+        return data.token;
+    }
+
+    function showAuthedUI() {
+        document.getElementById('authMessage').textContent = '';
+        document.getElementById('appSection').style.display = '';
+        document.getElementById('btnLogout').style.display = '';
+    }
+
+    function showLoggedOutUI(msg = '') {
+        document.getElementById('appSection').style.display = 'none';
+        document.getElementById('btnLogout').style.display = 'none';
+        document.getElementById('authMessage').textContent = msg;
+    }
+
     // State
     let allGames = [];
 
@@ -108,7 +172,7 @@ $(document).ready(function () {
     // Data load
     async function loadGames() {
         try {
-            const res = await fetch('/api/games');
+            const res = await apiFetch('/api/games');
             if (!res.ok) throw new Error(`GET /api/games failed: ${res.status}`);
             const data = await res.json();
 
@@ -136,7 +200,7 @@ $(document).ready(function () {
                 obs.unobserve(el);
 
                 try {
-                    const res = await fetch(`/api/games/${gameId}/cover`);
+                    const res = await apiFetch(`/api/games/${gameId}/cover`);
                     if (!res.ok) return;
 
                     const json = await res.json(); // { coverUrl: "..." }
@@ -225,8 +289,52 @@ $(document).ready(function () {
         });
     }
 
+    document.addEventListener('DOMContentLoaded', async () => {
+        const u = document.getElementById('authUsername');
+        const p = document.getElementById('authPassword');
+        const msg = document.getElementById('authMessage');
 
-    // Initial load
+        document.getElementById('btnRegister').addEventListener('click', async () => {
+            try {
+                msg.textContent = '';
+                await registerUser(u.value.trim(), p.value);
+                msg.textContent = 'Registered. You can sign in now.';
+            } catch (e) {
+                msg.textContent = e.message;
+            }
+        });
 
-    loadGames();
+        document.getElementById('btnLogin').addEventListener('click', async () => {
+            try {
+                msg.textContent = '';
+                const token = await loginUser(u.value.trim(), p.value);
+                setToken(token);
+                showAuthedUI();
+
+                // now load the library normally
+                await loadGames(); // rename to whatever your existing “fetch games” function is
+            } catch (e) {
+                msg.textContent = e.message;
+                showLoggedOutUI(e.message);
+            }
+        });
+
+        document.getElementById('btnLogout').addEventListener('click', () => {
+            clearToken();
+            showLoggedOutUI('Logged out.');
+        });
+
+        // auto-login if token exists
+        if (getToken()) {
+            showAuthedUI();
+            try {
+                await loadGames();
+            } catch (e) {
+                clearToken();
+                showLoggedOutUI('Session expired. Please sign in again.');
+            }
+        } else {
+            showLoggedOutUI('');
+        }
+    });
 });

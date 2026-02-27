@@ -10,8 +10,29 @@
 </head>
 <body>
 
+
+<div id="authSection" class="auth-wrap">
+    <h2>Sign In</h2>
+
+    <div class="auth-row">
+        <input id="authUsername" type="text" placeholder="Username" autocomplete="username" />
+        <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" />
+    </div>
+
+    <div class="auth-actions">
+        <button id="btnLogin">Sign In</button>
+        <button id="btnRegister" class="secondary">Register</button>
+        <button id="btnLogout" class="secondary" style="display:none;">Log Out</button>
+    </div>
+
+    <p id="authMessage" class="auth-message"></p>
+</div>
+
+<hr />
+
 <div class="bg-glow"></div>
 
+<div id="appSection" style="display:none;">
 <div class="container-fluid px-5 py-4">
     <header class="row mb-5 align-items-center">
         <div class="col-md-4">
@@ -98,6 +119,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 

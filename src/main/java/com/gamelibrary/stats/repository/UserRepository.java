@@ -1,6 +1,6 @@
 package com.gamelibrary.stats.repository;
 
-import com.yourapp.models.User;
+import com.gamelibrary.stats.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
