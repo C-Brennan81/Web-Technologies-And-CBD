@@ -1,0 +1,225 @@
+:root {
+    --bg: #020617;
+    --card: rgba(15, 23, 42, 0.8);
+    --neon: #00f2ff;
+    --text: #f8fafc;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+}
+
+.logo { font-weight: 700; letter-spacing: 4px; }
+.text-neon { color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+
+/* HUD Stat Cards */
+.stat-card {
+    background: var(--card);
+    padding: 15px;
+    border-left: 3px solid var(--neon);
+    backdrop-filter: blur(10px);
+}
+.stat-card .value { font-size: 1.8rem; font-weight: 700; }
+
+/* The Grid Design */
+.poster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 30px;
+}
+
+/* Vertical Poster Design */
+.game-poster {
+    aspect-ratio: 2 / 3;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer;
+}
+
+.game-poster:hover {
+    transform: scale(1.05) translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(0, 242, 255, 0.2);
+    border-color: var(--neon);
+}
+
+.platform-tag {
+    font-size: 0.6rem;
+    background: var(--neon);
+    color: black;
+    padding: 2px 6px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: var(--neon); }
+
+
+.topline{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:6px;
+}
+
+.status-pill{
+    font-size:0.6rem;
+    padding:2px 8px;
+    border-radius:999px;
+    font-weight:700;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+    background: rgba(0, 242, 255, 0.12);
+    border: 1px solid rgba(0, 242, 255, 0.25);
+    color: var(--text);
+}
+
+.meta-line{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:0.75rem;
+    opacity:0.9;
+    margin-top:2px;
+}
+
+.dot{ color: rgba(248, 250, 252, 0.35); }
+
+
+.game-poster {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.poster-img {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transform: scale(1);
+    transition: transform 180ms ease, filter 180ms ease;
+}
+
+.poster-img.has-cover {
+    box-shadow: none;
+}
+
+
+.poster-info {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 14px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+
+.game-poster::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(to top, rgba(0,0,0,0.88), rgba(0,0,0,0.15));
+    opacity: 0;
+    transition: opacity 180ms ease;
+}
+
+.game-poster:hover::before { opacity: 1; }
+.game-poster:hover .poster-info { opacity: 1; transform: translateY(0); }
+.game-poster:hover .poster-img { transform: scale(1.03); filter: saturate(1.1); }
+
+.modal-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal-card{
+    width: min(900px, 92vw);
+    background: rgba(10, 16, 28, 0.98);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 18px;
+    position: relative;
+}
+
+.modal-close{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: 0;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+.modal-body{
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 18px;
+}
+
+.modal-cover{
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.modal-title{
+    margin: 0 0 10px 0;
+}
+
+.modal-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 18px;
+}
+
+.modal-grid .label{
+    display: block;
+    font-size: 0.72rem;
+    opacity: 0.7;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.filters{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin: 10px 0 16px 0;
+}
+
+.filters select{
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 10px;
+}
+
+

@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GameRepository extends JpaRepository<Game, Long> {
-    // Basic CRUD methods are inherited automatically
+    // Basic CRUD methods should be inherited automatically
 }

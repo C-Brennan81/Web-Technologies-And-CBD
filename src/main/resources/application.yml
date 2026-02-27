@@ -5,11 +5,17 @@ spring:
     url: jdbc:mysql://localhost:3306/gamingstats
     username: root
     password: root
+  security:
+    jwt:
+      secret: "wdpoiwehfd9803hfbiwdaoihsoifhg398uph0uj109dhbigdubfgv9u82gd98phd10"
+      expirationMinutes: 120
   jpa:
     hibernate:
+      format_sql: false
       ddl-auto: create
     defer-datasource-initialization: true
-    show-sql: true
+    jpa:
+      show-sql: false
   sql:
     init:
       mode: always
@@ -24,5 +30,9 @@ logging:
   level:
     root: ERROR
     com.tus.services: INFO
+
+steamgriddb:
+  apiKey: 545b1a8284ee4886bc2ae302bac04476
+
 
 

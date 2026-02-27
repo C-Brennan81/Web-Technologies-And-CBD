@@ -105,17 +105,6 @@ public class GameService {
                     String platform = (g.getLauncher() != null) ? g.getLauncher().getName() : null;
                     Double hours = (g.getTimePlayed() == null) ? null : (g.getTimePlayed() / 3600.0);
 
-                    String coverUrl = g.getCoverUrl();
-
-                    if (coverUrl == null || coverUrl.isBlank()) {
-                        String found = steamGridDbClient.findCoverUrlByName(g.getTitle());
-                        if (found != null) {
-                            g.setCoverUrl(found);
-                            gameRepository.save(g); // cache it
-                            coverUrl = found;
-                        }
-                    }
-
                     return new GameDTO(
                             g.getId(),
                             g.getTitle(),
@@ -126,9 +115,9 @@ public class GameService {
                             g.getGenre()
                     );
                 })
-                .collect(Collectors.toList());
-
+                .collect(java.util.stream.Collectors.toList());
     }
+
 
     private static String safe(String[] line, int index) {
         if (line == null || index < 0 || index >= line.length) return null;

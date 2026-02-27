@@ -2,54 +2,107 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PC Game Manager</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameVault | Professional Edition</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-dark bg-dark mb-4">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">Launcher Manager Dashboard</span>
-    </div>
-</nav>
+<div class="bg-glow"></div>
 
-<div class="container">
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">Import Game Data</div>
-        <div class="card-body">
-            <form id="uploadForm">
-                <div class="input-group">
-                    <input type="file" class="form-control" id="gameFile" name="file" required>
-                    <button class="btn btn-outline-primary" type="submit">Upload CSV</button>
-                </div>
-            </form>
-            <div id="uploadStatus" class="mt-2"></div>
+<div class="container-fluid px-5 py-4">
+    <header class="row mb-5 align-items-center">
+        <div class="col-md-4">
+            <h1 class="logo">GAME<span class="text-neon">LIBRARY VAULT</span></h1>
+            <p class="text-muted tracking-widest">ENCRYPTED LIBRARY ACCESS // 878 RECORDS</p>
         </div>
+        <div class="col-md-8">
+            <div class="row g-3">
+                <div class="col-4">
+                    <div class="stat-card">
+                        <small>TOTAL VALUE</small>
+                        <div class="value">€<span id="totalValue">0</span></div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="stat-card">
+                        <small>COMPLETION</small>
+                        <div class="value">84%</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="stat-card highlight">
+                        <button class="btn-import" onclick="document.getElementById('gameFile').click()">
+                            INITIALIZE IMPORT
+                        </button>
+                        <input type="file" id="gameFile" hidden>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="search-wrap mb-4">
+        <input type="text" id="gameSearch" placeholder="SEARCH_DATABASE_...">
     </div>
 
-    <div class="card">
-        <div class="card-header bg-secondary text-white">My Game Library</div>
-        <div class="card-body">
-            <table id="gamesTable" class="table table-striped table-bordered w-100">
-                <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Genre</th>
-                    <th>Status</th>
-                    <th>Launcher</th>
-                    <th>Price</th>
-                </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+    <div class="filters">
+        <select id="filterPlatform">
+            <option value="">All Platforms</option>
+            <option>Steam</option>
+            <option>Epic</option>
+            <option>Xbox</option>
+            <option>PlayStation</option>
+            <option>Nintendo</option>
+        </select>
+
+        <select id="filterStatus">
+            <option value="">All Status</option>
+            <option>PLAYED</option>
+            <option>NOT PLAYED</option>
+            <option>COMPLETED</option>
+        </select>
+
+        <select id="sortBy">
+            <option value="title">Sort: Title</option>
+            <option value="priceDesc">Sort: Price (High → Low)</option>
+            <option value="priceAsc">Sort: Price (Low → High)</option>
+            <option value="hoursDesc">Sort: Playtime (High → Low)</option>
+        </select>
+    </div>
+
+
+    <main id="gameGrid" class="poster-grid">
+    </main>
+</div>
+
+<div id="gameModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+        <button id="modalClose" class="modal-close">✕</button>
+
+        <div class="modal-body">
+            <div id="modalCover" class="modal-cover"></div>
+
+            <div class="modal-details">
+                <h2 id="modalTitle" class="modal-title"></h2>
+
+                <div class="modal-grid">
+                    <div><span class="label">Platform</span><span id="modalPlatform"></span></div>
+                    <div><span class="label">Status</span><span id="modalStatus"></span></div>
+                    <div><span class="label">Genre</span><span id="modalGenre"></span></div>
+                    <div><span class="label">Playtime</span><span id="modalHours"></span></div>
+                    <div><span class="label">Price</span><span id="modalPrice"></span></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-<script src="js/app.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="/js/app.js"></script>
+
 </body>
 </html>
