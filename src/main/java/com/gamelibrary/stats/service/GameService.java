@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.gamelibrary.stats.model.User;
+import com.gamelibrary.stats.repository.UserRepository;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -25,20 +28,23 @@ public class GameService {
     @Autowired private GameRepository gameRepository;
     @Autowired private LauncherRepository launcherRepository;
     @Autowired private SteamGridDbClient steamGridDbClient;
+    @Autowired private UserRepository userRepository;
 
     private final Random random = new Random();
 
     // Upload endpoint uses this
-    public String importGames(MultipartFile file) throws Exception {
+    public String importGames(MultipartFile file, String username) throws Exception {
         try (InputStream is = file.getInputStream()) {
-            return importGames(is);
+            return importGames(is, username);
         }
     }
 
-    // Startup seeding uses this (and MultipartFile delegates to it)
-    public String importGames(InputStream inputStream) throws Exception {
+    public String importGames(InputStream inputStream, String username) throws Exception {
         int savedCount = 0;
         int skippedCount = 0;
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             String[] line;
@@ -54,6 +60,7 @@ public class GameService {
 
                 Game game = new Game();
                 game.setTitle(title.trim());
+                game.setUser(user);
 
                 String genres = safe(line, 4);
                 game.setGenres(genres);
@@ -61,7 +68,7 @@ public class GameService {
 
                 String completion = safe(line, 6);
                 game.setCompletionStatus(completion);
-                game.setStatus(completion); // keep compatibility
+                game.setStatus(completion);
 
                 Integer seconds = parseIntSafe(safe(line, 7));
                 game.setTimePlayed(seconds);
@@ -71,11 +78,9 @@ public class GameService {
                     launcherRepository.findByName(source.trim()).ifPresent(game::setLauncher);
                 }
 
-                // Price enrichment
                 double price = 5.0 + (55.0 * random.nextDouble());
                 game.setPurchasePrice(Math.round(price * 100.0) / 100.0);
 
-                // Optional extra fields (you already have these on Game)
                 game.setAgeRating(safe(line, 1));
                 game.setDevelopers(safe(line, 2));
                 game.setPublishers(safe(line, 3));
@@ -90,22 +95,21 @@ public class GameService {
     }
 
     @Transactional
-    public String replaceAllGamesFromClasspath(String classpathCsvName) throws Exception {
-        gameRepository.deleteAll();
+    public String importGamesFromClasspathForUser(String classpathCsvName, String username) throws Exception {
         ClassPathResource csv = new ClassPathResource(classpathCsvName);
         try (InputStream is = csv.getInputStream()) {
-            return importGames(is);
+            return importGames(is, username);
         }
     }
 
-    public List<GameDTO> getAllGames() {
-        return gameRepository.findAll()
+    public List<GameDTO> getMyGames(String username) {
+        return gameRepository.findByUserUsername(username)
                 .stream()
                 .map(g -> {
                     String platform = (g.getLauncher() != null) ? g.getLauncher().getName() : null;
                     Double hours = (g.getTimePlayed() == null) ? null : (g.getTimePlayed() / 3600.0);
 
-                    return new GameDTO(
+                    GameDTO dto = new GameDTO(
                             g.getId(),
                             g.getTitle(),
                             platform,
@@ -114,9 +118,14 @@ public class GameService {
                             g.getPurchasePrice(),
                             g.getGenre()
                     );
+
+                    dto.setCoverUrl(g.getCoverUrl());
+                    return dto;
                 })
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
+
+
 
 
     private static String safe(String[] line, int index) {
@@ -149,8 +158,13 @@ public class GameService {
         }
     }
 
-    public Optional<String> getOrFetchCover(Long id) {
-        return gameRepository.findById(id).map(g -> {
+    //Helpers
+    public long countGamesForUser(String username) {
+        return gameRepository.findByUserUsername(username).size();
+    }
+
+    public Optional<String> getOrFetchCoverForUser(Long id, String username) {
+        return gameRepository.findByIdAndUserUsername(id, username).map(g -> {
             String coverUrl = g.getCoverUrl();
             if (coverUrl == null || coverUrl.isBlank()) {
                 String found = steamGridDbClient.findCoverUrlByName(g.getTitle());

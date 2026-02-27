@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.security.core.Authentication;
+
 import java.util.List;
 import java.util.Map;
 
@@ -19,22 +21,22 @@ public class GameController {
     private GameService gameService;
 
     @GetMapping
-    public List<GameDTO> getAllGames() {
-        return gameService.getAllGames();
+    public List<GameDTO> getMyGames(Authentication auth) {
+        return gameService.getMyGames(auth.getName());
     }
 
     @GetMapping("/{id}/cover")
-    public ResponseEntity<Map<String, String>> getCover(@PathVariable Long id) {
-        return gameService.getOrFetchCover(id)
+    public ResponseEntity<Map<String, String>> getCover(@PathVariable Long id, Authentication auth) {
+        return gameService.getOrFetchCoverForUser(id, auth.getName())
                 .map(url -> ResponseEntity.ok(Map.of("coverUrl", url)))
                 .orElseGet(() -> ResponseEntity.ok(Map.of("coverUrl", "")));
     }
 
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadGames(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadGames(@RequestParam("file") MultipartFile file, Authentication auth) {
         try {
-            String result = gameService.importGames(file);
+            String result = gameService.importGames(file, auth.getName());
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
