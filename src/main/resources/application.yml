@@ -30,8 +30,8 @@ logging:
 steamgriddb:
   apiKey: 545b1a8284ee4886bc2ae302bac04476
 
-  security:
-    jwt:
-      secret: "wdpoiwehfd9803hfbiwdaoihsoifhg398uph0uj109dhbigdubfgv9u82gd98phd10"
-      expirationMinutes: 120
+security:
+  jwt:
+    secret: "wdpoiwehfd9803hfbiwdaoihsoifhg398uph0uj109dhbigdubfgv9u82gd98phd10"
+    expirationMinutes: 120
 

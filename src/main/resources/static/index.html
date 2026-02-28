@@ -11,28 +11,41 @@
 <body>
 
 
-<div id="authSection" class="auth-wrap">
-    <h2>Sign In</h2>
+<div id="landing" class="landing">
+    <div class="landing-card">
+        <h1 class="landing-title">GameLibrary Vault</h1>
+        <p class="landing-sub">Sign in to access your private library.</p>
 
-    <div class="auth-row">
-        <input id="authUsername" type="text" placeholder="Username" autocomplete="username" />
-        <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" />
+        <div class="tabs">
+            <button id="tabLogin" class="tab active" type="button">Sign In</button>
+            <button id="tabRegister" class="tab" type="button">Register</button>
+        </div>
+
+        <!-- LOGIN -->
+        <div id="loginPanel">
+            <input id="loginUsername" type="text" placeholder="Username" autocomplete="username" />
+            <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password" />
+            <button id="btnLogin" type="button" class="primary">Sign In</button>
+        </div>
+
+        <!-- REGISTER -->
+        <div id="registerPanel" style="display:none;">
+            <input id="regUsername" type="text" placeholder="Username" autocomplete="username" />
+            <input id="regEmail" type="email" placeholder="Email" autocomplete="email" />
+            <input id="regPassword" type="password" placeholder="Password" autocomplete="new-password" />
+            <input id="regPassword2" type="password" placeholder="Confirm Password" autocomplete="new-password" />
+            <button id="btnRegister" type="button" class="primary">Create Account</button>
+        </div>
+
+        <p id="authMessage" class="auth-message"></p>
     </div>
-
-    <div class="auth-actions">
-        <button id="btnLogin">Sign In</button>
-        <button id="btnRegister" class="secondary">Register</button>
-        <button id="btnLogout" class="secondary" style="display:none;">Log Out</button>
-    </div>
-
-    <p id="authMessage" class="auth-message"></p>
 </div>
 
-<hr />
-
-<div class="bg-glow"></div>
 
 <div id="appSection" style="display:none;">
+<div class="bg-glow"></div>
+
+
 <div class="container-fluid px-5 py-4">
     <header class="row mb-5 align-items-center">
         <div class="col-md-4">
@@ -61,6 +74,7 @@
                         <input type="file" id="gameFile" hidden>
                     </div>
                 </div>
+                <button id="btnLogout" type="button" class="btn-logout">LOG OUT</button>
             </div>
         </div>
     </header>

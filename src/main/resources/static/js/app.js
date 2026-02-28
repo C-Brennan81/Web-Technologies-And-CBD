@@ -18,9 +18,7 @@ $(document).ready(function () {
     async function apiFetch(url, options = {}) {
         const token = getToken();
         const headers = options.headers ? { ...options.headers } : {};
-
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
+        if (token) headers['Authorization'] = `Bearer ${token}`
         return fetch(API + url, { ...options, headers });
     }
 
@@ -53,15 +51,79 @@ $(document).ready(function () {
     }
 
     function showAuthedUI() {
-        document.getElementById('authMessage').textContent = '';
+        document.getElementById('landing').style.display = 'none';
         document.getElementById('appSection').style.display = '';
-        document.getElementById('btnLogout').style.display = '';
+        document.getElementById('authMessage').textContent = '';
     }
 
     function showLoggedOutUI(msg = '') {
+        document.getElementById('landing').style.display = '';
         document.getElementById('appSection').style.display = 'none';
-        document.getElementById('btnLogout').style.display = 'none';
         document.getElementById('authMessage').textContent = msg;
+    }
+
+    // Tabs
+    $('#tabLogin').on('click', () => {
+        $('#tabLogin').addClass('active');
+        $('#tabRegister').removeClass('active');
+        $('#loginPanel').show();
+        $('#registerPanel').hide();
+    });
+
+    $('#tabRegister').on('click', () => {
+        $('#tabRegister').addClass('active');
+        $('#tabLogin').removeClass('active');
+        $('#registerPanel').show();
+        $('#loginPanel').hide();
+    });
+
+// Register
+    $('#btnRegister').on('click', async () => {
+        const username = $('#regUsername').val().trim();
+        const email = $('#regEmail').val().trim(); // not sent yet unless you add backend support
+        const p1 = $('#regPassword').val();
+        const p2 = $('#regPassword2').val();
+
+        if (p1 !== p2) {
+            $('#authMessage').text('Passwords do not match');
+            return;
+        }
+
+        try {
+            $('#authMessage').text('');
+            await registerUser(username, p1); // add email later when backend supports it
+            $('#authMessage').text('Registered. You can sign in now.');
+            $('#tabLogin').click();
+        } catch (e) {
+            $('#authMessage').text(e.message);
+        }
+    });
+
+// Login
+    $('#btnLogin').on('click', async () => {
+        const username = $('#loginUsername').val().trim();
+        const password = $('#loginPassword').val();
+
+        try {
+            $('#authMessage').text('');
+            const token = await loginUser(username, password);
+            setToken(token);
+            showAuthedUI();
+            await loadGames();
+        } catch (e) {
+            showLoggedOutUI(e.message);
+        }
+    });
+
+// Auto-login
+    if (getToken()) {
+        showAuthedUI();
+        loadGames().catch(() => {
+            clearToken();
+            showLoggedOutUI('Session expired. Please sign in again.');
+        });
+    } else {
+        showLoggedOutUI('');
     }
 
     // State
@@ -157,6 +219,36 @@ $(document).ready(function () {
 
         setupCoverLazyLoad();
         setupModalClicks();
+    }
+
+    // Import CSV -> POST to backend
+    const gameFileInput = document.getElementById('gameFile');
+    if (gameFileInput) {
+        gameFileInput.addEventListener('change', async () => {
+            if (!gameFileInput.files || gameFileInput.files.length === 0) return;
+
+            try {
+                const fd = new FormData();
+                fd.append('file', gameFileInput.files[0]);
+
+                const res = await apiFetch('/api/games/upload', {
+                    method: 'POST',
+                    body: fd
+                });
+
+                const text = await res.text();
+                if (!res.ok) throw new Error(text || `Import failed (${res.status})`);
+
+                // optional: replace alert with a nicer UI message later
+                alert(text);
+
+                gameFileInput.value = '';
+                await loadGames();
+
+            } catch (err) {
+                alert(err.message || 'Import failed');
+            }
+        });
     }
 
     // Needed this to stop things breaking when titles of games have below characters
@@ -289,52 +381,75 @@ $(document).ready(function () {
         });
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        const u = document.getElementById('authUsername');
-        const p = document.getElementById('authPassword');
-        const msg = document.getElementById('authMessage');
+    // --- AUTH WIRING ---
 
-        document.getElementById('btnRegister').addEventListener('click', async () => {
-            try {
-                msg.textContent = '';
-                await registerUser(u.value.trim(), p.value);
-                msg.textContent = 'Registered. You can sign in now.';
-            } catch (e) {
-                msg.textContent = e.message;
-            }
-        });
+    const msg = document.getElementById('authMessage');
 
-        document.getElementById('btnLogin').addEventListener('click', async () => {
-            try {
-                msg.textContent = '';
-                const token = await loginUser(u.value.trim(), p.value);
-                setToken(token);
-                showAuthedUI();
+    document.getElementById('btnLogin').addEventListener('click', async () => {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
 
-                // now load the library normally
-                await loadGames(); // rename to whatever your existing “fetch games” function is
-            } catch (e) {
-                msg.textContent = e.message;
-                showLoggedOutUI(e.message);
-            }
-        });
 
-        document.getElementById('btnLogout').addEventListener('click', () => {
-            clearToken();
-            showLoggedOutUI('Logged out.');
-        });
-
-        // auto-login if token exists
-        if (getToken()) {
+        try {
+            msg.textContent = '';
+            const token = await loginUser(username, password);
+            setToken(token);
             showAuthedUI();
-            try {
-                await loadGames();
-            } catch (e) {
-                clearToken();
-                showLoggedOutUI('Session expired. Please sign in again.');
-            }
-        } else {
-            showLoggedOutUI('');
+            await loadGames();
+        } catch (e) {
+            clearToken();
+            showLoggedOutUI(e.message);
         }
     });
+
+    const logoutBtn = document.getElementById('btnLogout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('jwtToken');
+            showLoggedOutUI('Logged out.');
+            location.reload();
+        });
+    }
+
+    document.getElementById('btnRegister').addEventListener('click', async () => {
+        const username = document.getElementById('regUsername').value.trim();
+        const p1 = document.getElementById('regPassword').value;
+        const p2 = document.getElementById('regPassword2').value;
+
+        if (p1 !== p2) {
+            msg.textContent = 'Passwords do not match';
+            return;
+        }
+
+        try {
+            msg.textContent = '';
+            await registerUser(username, p1);
+            msg.textContent = 'Registered. You can sign in now.';
+            document.getElementById('tabLogin').click();
+        } catch (e) {
+            msg.textContent = e.message;
+        }
+    });
+
+// auto-login if token exists
+    if (getToken()) {
+        showAuthedUI();
+        loadGames().catch(() => {
+            clearToken();
+            showLoggedOutUI('Session expired. Please sign in again.');
+        });
+    } else {
+        showLoggedOutUI('');
+    }
+
+// auto-login if token exists
+    if (getToken()) {
+        showAuthedUI();
+        loadGames().catch(() => {
+            clearToken();
+            showLoggedOutUI('Session expired. Please sign in again.');
+        });
+    } else {
+        showLoggedOutUI('');
+    }
 });
