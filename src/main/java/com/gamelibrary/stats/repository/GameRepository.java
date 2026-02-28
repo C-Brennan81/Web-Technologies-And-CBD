@@ -14,6 +14,7 @@ public interface GameRepository extends JpaRepository<Game, Long> {
 
     Optional<Game> findByIdAndUserUsername(Long id, String username);
 
-    boolean gameAlreadyExists(String username, String title, String launcherName);
+    // Check for an existing game by user, title, and launcher name
+    boolean existsByUserUsernameAndTitleAndLauncher_Name(String username, String title, String launcherName);
 }
 

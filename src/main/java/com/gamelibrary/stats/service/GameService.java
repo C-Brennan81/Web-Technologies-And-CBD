@@ -107,7 +107,7 @@ public class GameService {
                 game.setCommunityScore(parseDoubleSafe(safe(line, 9)));
 
 
-                if (gameRepository.gameAlreadyExists(
+                if (gameRepository.existsByUserUsernameAndTitleAndLauncher_Name(
                         username, game.getTitle(), game.getLauncher().getName()
                 )) {
                     skippedCount++;
