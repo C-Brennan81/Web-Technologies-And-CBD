@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.core.Authentication;
+
 @RestController
 @RequestMapping("/api/games")
 public class GameController {
@@ -34,9 +36,13 @@ public class GameController {
 
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadGames(@RequestParam("file") MultipartFile file, Authentication auth) {
+    public ResponseEntity<String> uploadGames(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(name = "excludeNonFull", defaultValue = "true") boolean excludeNonFull,
+            Authentication auth
+    ) {
         try {
-            String result = gameService.importGames(file, auth.getName());
+            String result = gameService.importGames(file, auth.getName(), excludeNonFull);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

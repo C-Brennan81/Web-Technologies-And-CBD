@@ -33,14 +33,19 @@ public class GameService {
     private final Random random = new Random();
 
     // Upload endpoint uses this
-    public String importGames(MultipartFile file, String username) throws Exception {
+    // Upload endpoint uses this
+    public String importGames(MultipartFile file, String username, boolean excludeNonFull) throws Exception {
         try (InputStream is = file.getInputStream()) {
-            return importGames(is, username);
+            return importGames(is, username, excludeNonFull);
         }
     }
 
-    public String importGames(InputStream inputStream, String username) throws Exception {
-        int savedCount = 0;
+    // Backward compatible default
+    public String importGames(MultipartFile file, String username) throws Exception {
+        return importGames(file, username, true);
+    }
+
+    public String importGames(InputStream inputStream, String username, boolean excludeNonFull) throws Exception {        int savedCount = 0;
         int skippedCount = 0;
 
         User user = userRepository.findByUsername(username)
@@ -54,6 +59,11 @@ public class GameService {
 
                 String title = safe(line, 0);
                 if (title == null || title.isBlank()) {
+                    skippedCount++;
+                    continue;
+                }
+
+                if (excludeNonFull && isNonFullRelease(title)) {
                     skippedCount++;
                     continue;
                 }
@@ -73,10 +83,20 @@ public class GameService {
                 Integer seconds = parseIntSafe(safe(line, 7));
                 game.setTimePlayed(seconds);
 
+
+                //Parsing/ Skip Lines
                 String source = safe(line, 8);
-                if (source != null) {
-                    launcherRepository.findByName(source.trim()).ifPresent(game::setLauncher);
+                if (source == null || source.isBlank()) {
+                    skippedCount++;
+                    continue;
                 }
+
+                var launcherOpt = launcherRepository.findByName(source.trim());
+                if (launcherOpt.isEmpty()) {
+                    skippedCount++;
+                    continue;
+                }
+                game.setLauncher(launcherOpt.get());
 
                 double price = 5.0 + (55.0 * random.nextDouble());
                 game.setPurchasePrice(Math.round(price * 100.0) / 100.0);
@@ -92,6 +112,10 @@ public class GameService {
         }
 
         return "Import complete! Successfully saved " + savedCount + " games. Skipped " + skippedCount + " bad rows.";
+    }
+
+    public String importGames(InputStream inputStream, String username) throws Exception {
+        return importGames(inputStream, username, true);
     }
 
     @Transactional
@@ -161,6 +185,31 @@ public class GameService {
     //Helpers
     public long countGamesForUser(String username) {
         return gameRepository.findByUserUsername(username).size();
+    }
+
+    private static boolean isNonFullRelease(String title) {
+        if (title == null) return false;
+        String t = normalizeTitle(title);
+
+        // keep these simple and obvious for marking
+        return t.contains(" demo")
+                || t.contains(" beta")
+                || t.contains(" playtest")
+                || t.contains(" alpha")
+                || t.contains(" trial");
+    }
+
+    private static String normalizeTitle(String title) {
+        String t = title.toLowerCase();
+
+        // replace non-alphanumeric with spaces
+        t = t.replaceAll("[^a-z0-9]+", " ");
+
+        // collapse multiple spaces
+        t = t.replaceAll("\\s+", " ").trim();
+
+        // pad with spaces so "demo" matches cleanly with contains(" demo")
+        return " " + t + " ";
     }
 
     public Optional<String> getOrFetchCoverForUser(Long id, String username) {
