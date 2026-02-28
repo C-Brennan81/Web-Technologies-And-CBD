@@ -231,7 +231,9 @@ $(document).ready(function () {
                 const fd = new FormData();
                 fd.append('file', gameFileInput.files[0]);
 
-                const res = await apiFetch('/api/games/upload', {
+                const excludeNonFull = confirm('Exclude demos / betas / playtests from import?');
+
+                const res = await apiFetch(`/api/games/upload?excludeNonFull=${excludeNonFull}`, {
                     method: 'POST',
                     body: fd
                 });
@@ -334,6 +336,32 @@ $(document).ready(function () {
         });
 
         renderGames(filtered);
+        renderDataTable(filtered);
+    }
+
+    let dt = null;
+
+    function renderDataTable(games) {
+        const rows = games.map(g => ([
+            g.title ?? '',
+            g.platform ?? '',
+            g.completionStatus ?? '',
+            g.genre ?? '',
+            g.playTimeHours ?? '',
+            g.purchasePrice ?? ''
+        ]));
+
+        if (dt) {
+            dt.clear();
+            dt.rows.add(rows);
+            dt.draw();
+            return;
+        }
+
+        dt = $('#gamesTable').DataTable({
+            data: rows,
+            pageLength: 10
+        });
     }
 
     // Wire up all filter controls to rerender
@@ -381,26 +409,18 @@ $(document).ready(function () {
         });
     }
 
-    // --- AUTH WIRING ---
-
-    const msg = document.getElementById('authMessage');
-
-    document.getElementById('btnLogin').addEventListener('click', async () => {
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value;
-
-
-        try {
-            msg.textContent = '';
-            const token = await loginUser(username, password);
-            setToken(token);
-            showAuthedUI();
-            await loadGames();
-        } catch (e) {
-            clearToken();
-            showLoggedOutUI(e.message);
-        }
+    $('#btnGridView').on('click', () => {
+        $('#tableView').hide();
+        $('#gameGrid').show();
     });
+
+    $('#btnTableView').on('click', () => {
+        $('#gameGrid').hide();
+        $('#tableView').show();
+        if (dt) dt.columns.adjust().draw();
+    });
+
+    // --- AUTH WIRING ---
 
     const logoutBtn = document.getElementById('btnLogout');
     if (logoutBtn) {
@@ -409,47 +429,5 @@ $(document).ready(function () {
             showLoggedOutUI('Logged out.');
             location.reload();
         });
-    }
-
-    document.getElementById('btnRegister').addEventListener('click', async () => {
-        const username = document.getElementById('regUsername').value.trim();
-        const p1 = document.getElementById('regPassword').value;
-        const p2 = document.getElementById('regPassword2').value;
-
-        if (p1 !== p2) {
-            msg.textContent = 'Passwords do not match';
-            return;
-        }
-
-        try {
-            msg.textContent = '';
-            await registerUser(username, p1);
-            msg.textContent = 'Registered. You can sign in now.';
-            document.getElementById('tabLogin').click();
-        } catch (e) {
-            msg.textContent = e.message;
-        }
-    });
-
-// auto-login if token exists
-    if (getToken()) {
-        showAuthedUI();
-        loadGames().catch(() => {
-            clearToken();
-            showLoggedOutUI('Session expired. Please sign in again.');
-        });
-    } else {
-        showLoggedOutUI('');
-    }
-
-// auto-login if token exists
-    if (getToken()) {
-        showAuthedUI();
-        loadGames().catch(() => {
-            clearToken();
-            showLoggedOutUI('Session expired. Please sign in again.');
-        });
-    } else {
-        showLoggedOutUI('');
     }
 });

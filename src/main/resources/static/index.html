@@ -108,6 +108,26 @@
         </select>
     </div>
 
+    <div class="view-toggle mb-3">
+        <button id="btnGridView" type="button" class="btn btn-sm btn-outline-light">Grid</button>
+        <button id="btnTableView" type="button" class="btn btn-sm btn-outline-light">Table</button>
+    </div>
+
+    <div id="tableView" style="display:none;">
+        <table id="gamesTable" class="table table-dark table-striped" style="width:100%">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Platform</th>
+                <th>Status</th>
+                <th>Genre</th>
+                <th>Hours</th>
+                <th>Price</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
     <main id="gameGrid" class="poster-grid">
     </main>
@@ -138,6 +158,8 @@
 
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="/js/app.js"></script>
 
 </body>

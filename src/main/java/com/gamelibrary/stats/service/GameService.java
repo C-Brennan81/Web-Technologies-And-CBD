@@ -106,6 +106,14 @@ public class GameService {
                 game.setPublishers(safe(line, 3));
                 game.setCommunityScore(parseDoubleSafe(safe(line, 9)));
 
+
+                if (gameRepository.gameAlreadyExists(
+                        username, game.getTitle(), game.getLauncher().getName()
+                )) {
+                    skippedCount++;
+                    continue;
+                }
+
                 gameRepository.save(game);
                 savedCount++;
             }
