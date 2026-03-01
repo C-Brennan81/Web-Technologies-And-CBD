@@ -63,7 +63,7 @@
                 <div class="col-4">
                     <div class="stat-card">
                         <small>COMPLETION</small>
-                        <div class="value">84%</div>
+                        <div class="value"><span id="completionValue">0%</span></div>
                     </div>
                 </div>
                 <div class="col-4">
@@ -194,12 +194,18 @@
                     <div><span class="label">Price</span><span id="modalPrice"></span></div>
                 </div>
             </div>
+
+            <div class="modal-chart mt-3">
+                <canvas id="gameStatsChart" height="140" style="display:none;"></canvas>
+                <div id="noChartData" class="text-muted small">No data yet</div>
+            </div>
         </div>
     </div>
 </div>
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>

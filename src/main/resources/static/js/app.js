@@ -139,6 +139,7 @@ $(document).ready(function () {
 
     // State
     let allGames = [];
+    let gameStatsChart = null; // Chart.js instance for per-game modal chart
 
     // Helpers
     function money(n) {
@@ -160,6 +161,115 @@ $(document).ready(function () {
     function numOrZero(v) {
         const n = Number(v);
         return isNaN(n) ? 0 : n;
+    }
+
+    // --- Analytics helpers (US-10, US-11) ---
+    function computeCompletionRate(games) {
+        if (!Array.isArray(games) || games.length === 0) return 0;
+        const withStatus = games.filter(g => (g && g.completionStatus && String(g.completionStatus).trim().length));
+        if (withStatus.length === 0) return 0;
+        const completed = withStatus.filter(g => String(g.completionStatus).toUpperCase() === 'COMPLETED').length;
+        return Math.round((completed / withStatus.length) * 100);
+    }
+
+    function renderCompletionRate() {
+        const el = document.getElementById('completionValue');
+        if (!el) return;
+        const pct = computeCompletionRate(allGames);
+        el.textContent = `${pct}%`;
+    }
+
+    function avgOf(arr) {
+        const nums = arr.map(Number).filter(n => !isNaN(n));
+        if (nums.length === 0) return NaN;
+        const sum = nums.reduce((a, b) => a + b, 0);
+        return sum / nums.length;
+    }
+
+    function getLibraryAverages() {
+        const hours = allGames
+            .map(g => g && g.playTimeHours)
+            .map(v => Number(v))
+            .filter(v => !isNaN(v));
+        const prices = allGames
+            .map(g => g && g.purchasePrice)
+            .map(v => Number(v))
+            .filter(v => !isNaN(v));
+        return {
+            avgHours: hours.length ? avgOf(hours) : NaN,
+            avgPrice: prices.length ? avgOf(prices) : NaN
+        };
+    }
+
+    function renderPerGameChart(gameHours, gamePrice) {
+        const canvas = document.getElementById('gameStatsChart');
+        const emptyDiv = document.getElementById('noChartData');
+        if (!canvas || !emptyDiv) return;
+
+        // Dispose previous chart
+        if (gameStatsChart && typeof gameStatsChart.destroy === 'function') {
+            try { gameStatsChart.destroy(); } catch {}
+            gameStatsChart = null;
+        }
+
+        const { avgHours, avgPrice } = getLibraryAverages();
+        const hasHours = !isNaN(Number(gameHours)) || !isNaN(avgHours);
+        const hasPrice = !isNaN(Number(gamePrice)) || !isNaN(avgPrice);
+
+        // If library has no data at all for both metrics, show the empty state
+        if ((!hasHours || (isNaN(Number(gameHours)) && isNaN(avgHours))) && (!hasPrice || (isNaN(Number(gamePrice)) && isNaN(avgPrice)))) {
+            canvas.style.display = 'none';
+            emptyDiv.style.display = '';
+            return;
+        }
+
+        // Prepare datasets (fallback missing values to 0 for visualization)
+        const thisGameHours = isNaN(Number(gameHours)) ? 0 : Number(gameHours);
+        const thisGamePrice = isNaN(Number(gamePrice)) ? 0 : Number(gamePrice);
+        const libraryHours = isNaN(avgHours) ? 0 : avgHours;
+        const libraryPrice = isNaN(avgPrice) ? 0 : avgPrice;
+
+        const labels = ['Playtime (h)', 'Price (€)'];
+        const data = {
+            labels,
+            datasets: [
+                {
+                    label: 'This Game',
+                    backgroundColor: 'rgba(0, 200, 255, 0.5)',
+                    borderColor: 'rgba(0, 200, 255, 1)',
+                    borderWidth: 1,
+                    data: [thisGameHours, thisGamePrice]
+                },
+                {
+                    label: 'Library Avg',
+                    backgroundColor: 'rgba(0, 255, 120, 0.4)',
+                    borderColor: 'rgba(0, 255, 120, 1)',
+                    borderWidth: 1,
+                    data: [libraryHours, libraryPrice]
+                }
+            ]
+        };
+
+        const opts = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#cfe6ff' } },
+                tooltip: { enabled: true }
+            }
+        };
+
+        // Show canvas, hide empty div
+        emptyDiv.style.display = 'none';
+        canvas.style.display = '';
+        const ctx = canvas.getContext('2d');
+        // Chart global color tweaks are optional; rely on per-dataset colors
+        gameStatsChart = new Chart(ctx, { type: 'bar', data, options: opts });
     }
 
     // Rendering
@@ -498,6 +608,7 @@ $(document).ready(function () {
             const data = await res.json();
 
             allGames = Array.isArray(data) ? data : [];
+            renderCompletionRate();
             applyFiltersAndRender();
         } catch (e) {
             console.error(e);
@@ -564,6 +675,8 @@ $(document).ready(function () {
 
         renderGames(filtered);
         renderDataTable(filtered);
+        // Keep completion rate in sync; currently based on entire library
+        renderCompletionRate();
     }
 
     let dt = null;
@@ -620,6 +733,11 @@ $(document).ready(function () {
             if (document.getElementById('modalCover')) {
                 document.getElementById('modalCover').style.backgroundImage = bg;
             }
+
+            // Render per-game chart comparing this game vs library average
+            const hoursNum = hoursRaw ? Number(hoursRaw) : NaN;
+            const priceNum = priceRaw ? Number(priceRaw) : NaN;
+            renderPerGameChart(hoursNum, priceNum);
 
             $('#gameModal').show();
         });
