@@ -34,6 +34,17 @@ $(document).ready(function () {
         return text;
     }
 
+    function getRoleFromToken() {
+        const t = getToken();
+        if (!t) return null;
+        try {
+            const payload = JSON.parse(atob(t.split('.')[1]));
+            return payload.role || null; // JwtService sets claim("role", role)
+        } catch {
+            return null;
+        }
+    }
+
     async function loginUser(username, password) {
         const res = await fetch('/api/auth/login', {
             method: 'POST',
@@ -109,7 +120,7 @@ $(document).ready(function () {
             const token = await loginUser(username, password);
             setToken(token);
             showAuthedUI();
-            await loadGames();
+            await onAuthed();
         } catch (e) {
             showLoggedOutUI(e.message);
         }
@@ -118,7 +129,7 @@ $(document).ready(function () {
 // Auto-login
     if (getToken()) {
         showAuthedUI();
-        loadGames().catch(() => {
+        onAuthed().catch(() => {
             clearToken();
             showLoggedOutUI('Session expired. Please sign in again.');
         });
@@ -221,6 +232,97 @@ $(document).ready(function () {
         setupModalClicks();
     }
 
+    async function loadUsersAdmin() {
+        const res = await apiFetch('/api/admin/users');
+        if (!res.ok) throw new Error(await res.text());
+
+        const users = await res.json();
+        const tbody = document.querySelector('#usersTable tbody');
+        tbody.innerHTML = '';
+
+        for (const u of users) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+      <td>${u.id}</td>
+      <td>${u.username}</td>
+      <td>${u.role}</td>
+      <td>${u.enabled}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-light" data-action="toggle" data-id="${u.id}" data-enabled="${u.enabled}">
+          ${u.enabled ? 'Disable' : 'Enable'}
+        </button>
+        <button class="btn btn-sm btn-outline-light" data-action="role" data-id="${u.id}" data-role="${u.role}">
+          ${u.role === 'ROLE_ADMIN' ? 'Make USER' : 'Make ADMIN'}
+        </button>
+        <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${u.id}">
+          Delete
+        </button>
+      </td>
+    `;
+            tbody.appendChild(tr);
+        }
+
+        tbody.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                const action = btn.dataset.action;
+
+                if (action === 'toggle') {
+                    const enabled = btn.dataset.enabled !== 'true';
+                    await apiFetch(`/api/admin/users/${id}/enabled`, {
+                        method: 'PATCH',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({ enabled })
+                    });
+                }
+
+                if (action === 'role') {
+                    const newRole = btn.dataset.role === 'ROLE_ADMIN' ? 'ROLE_USER' : 'ROLE_ADMIN';
+                    await apiFetch(`/api/admin/users/${id}/role`, {
+                        method: 'PATCH',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({ role: newRole })
+                    });
+                }
+
+                if (action === 'delete') {
+                    if (!confirm('Delete this user and ALL their games?')) return;
+                    await apiFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                }
+
+                await loadUsersAdmin();
+            });
+        });
+    }
+
+
+    async function onAuthed() {
+        const role = getRoleFromToken();
+
+        if (role === 'ROLE_ADMIN') {
+            // admin mode: do NOT load games
+            allGames = [];
+            $('#gameGrid').empty();
+            $('#totalValue').text('0.00');
+
+            $('#adminSection').show();
+            $('#adminLaunchers').show();
+
+            // only call these if you actually implement them in JS
+            if (typeof loadUsersAdmin === 'function') await loadUsersAdmin();
+            if (typeof loadLaunchersAdmin === 'function') await loadLaunchersAdmin();
+
+            await loadUsersAdmin();
+
+            return;
+        }
+
+        // user mode
+        $('#adminSection').hide();
+        $('#adminLaunchers').hide();
+        await loadGames();
+    }
+
     // Import CSV -> POST to backend
     const gameFileInput = document.getElementById('gameFile');
     if (gameFileInput) {
@@ -262,6 +364,131 @@ $(document).ready(function () {
             .replaceAll('"', '&quot;')
             .replaceAll("'", '&#039;');
     }
+
+    // --- ADMIN HELPERS ---
+    function decodeJwtPayload(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const json = atob(base64);
+            return JSON.parse(json);
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function isAdmin() {
+        const token = getToken();
+        if (!token) return false;
+        const p = decodeJwtPayload(token);
+        const role = p && (p.role || p.roles || p.authorities);
+        if (!role) return false;
+        if (Array.isArray(role)) return role.some(r => String(r).includes('ADMIN'));
+        return String(role).includes('ADMIN');
+    }
+
+    function isUser() {
+        const token = getToken();
+        if (!token) return false;
+        const p = decodeJwtPayload(token);
+        const role = p && (p.role || p.roles || p.authorities);
+        if (!role) return false;
+        if (Array.isArray(role)) return role.some(r => String(r).includes('USER'));
+        return String(role).includes('USER');
+    }
+
+    async function loadLaunchersAdmin() {
+        const res = await apiFetch('/api/launchers');
+        if (!res.ok) throw new Error(await res.text());
+        const launchers = await res.json();
+
+        const tbody = document.querySelector('#launchersTable tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        for (const l of launchers) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+      <td>${l.id}</td>
+      <td>
+        <input class="form-control form-control-sm launcher-name" value="${escapeHtml(l.name)}" data-id="${l.id}">
+      </td>
+      <td>
+        <button class="btn btn-sm btn-outline-light btn-save" data-id="${l.id}">Save</button>
+        <button class="btn btn-sm btn-outline-danger btn-del" data-id="${l.id}">Delete</button>
+      </td>
+    `;
+            tbody.appendChild(tr);
+        }
+
+        tbody.querySelectorAll('.btn-save').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                const input = tbody.querySelector(`input.launcher-name[data-id="${id}"]`);
+                const name = input.value.trim();
+
+                const r = await apiFetch(`/api/launchers/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                if (!r.ok) alert(await r.text());
+                else await loadLaunchersAdmin();
+            });
+        });
+
+        tbody.querySelectorAll('.btn-del').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                if (!confirm('Delete this launcher?')) return;
+
+                const r = await apiFetch(`/api/launchers/${id}`, { method: 'DELETE' });
+                if (!r.ok) alert(await r.text());
+                else await loadLaunchersAdmin();
+            });
+        });
+    }
+
+    function updateAdminPanelsVisibility() {
+        const admin = isAdmin();
+        const adminSection = document.getElementById('adminSection');
+        const launchersPanel = document.getElementById('adminLaunchers');
+        if (adminSection) adminSection.style.display = admin ? '' : 'none';
+        if (launchersPanel) launchersPanel.style.display = admin ? '' : 'none';
+        if (admin) {
+            // Populate launchers table when visible
+            loadLaunchersAdmin().catch(() => {});
+        }
+    }
+
+    // Wire Add button for launchers
+    const addBtn = document.getElementById('btnAddLauncher');
+    if (addBtn) {
+        addBtn.addEventListener('click', async () => {
+            const input = document.getElementById('launcherNameInput');
+            if (!input) return;
+            const name = input.value.trim();
+            if (!name) return;
+
+            const res = await apiFetch('/api/launchers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+
+            const text = await res.text();
+            if (!res.ok) {
+                alert(text);
+                return;
+            }
+
+            input.value = '';
+            await loadLaunchersAdmin();
+        });
+    }
+
+
 
     // Data load
     async function loadGames() {
@@ -482,9 +709,16 @@ $(document).ready(function () {
             const token = await loginUser(username, password);
             setToken(token);
             showAuthedUI();
+            updateAdminPanelsVisibility();
 
-            await loadGames();
-            applyFiltersAndRender();
+            if (isUser()) {
+                await loadGames();
+                applyFiltersAndRender();
+            } else {
+                // Admin-only session: do not hit user-only endpoints
+                $('#gameGrid').empty();
+                $('#totalValue').text('0.00');
+            }
 
         } catch (e) {
             clearToken();
@@ -504,12 +738,19 @@ $(document).ready(function () {
 // Auto-login
     if (getToken()) {
         showAuthedUI();
-        loadGames()
-            .then(() => applyFiltersAndRender())
-            .catch(() => {
-                clearToken();
-                showLoggedOutUI('Session expired. Please sign in again.');
-            });
+        updateAdminPanelsVisibility();
+        if (isUser()) {
+            loadGames()
+                .then(() => applyFiltersAndRender())
+                .catch(() => {
+                    clearToken();
+                    showLoggedOutUI('Session expired. Please sign in again.');
+                });
+        } else {
+            // Admin-only session: avoid calling user endpoints
+            $('#gameGrid').empty();
+            $('#totalValue').text('0.00');
+        }
     } else {
         showLoggedOutUI('');
     }
