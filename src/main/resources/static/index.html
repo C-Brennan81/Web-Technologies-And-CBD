@@ -71,13 +71,34 @@
                         <button class="btn-import" onclick="document.getElementById('gameFile').click()">
                             INITIALIZE IMPORT
                         </button>
+                        <button id="btnLogout" type="button" class="btn btn-outline-light btn-sm mt-2">
+                            LOG OUT
+                        </button>
                         <input type="file" id="gameFile" hidden>
                     </div>
                 </div>
-                <button id="btnLogout" type="button" class="btn-logout">LOG OUT</button>
             </div>
         </div>
     </header>
+
+    <div id="adminSection" style="display:none;" class="mt-4">
+        <h3 class="text-light mb-3">Admin: Users</h3>
+
+        <div class="table-responsive">
+            <table class="table table-dark table-striped align-middle" id="usersTable">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Enabled</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 
     <div class="search-wrap mb-4">
         <input type="text" id="gameSearch" placeholder="SEARCH_DATABASE_...">

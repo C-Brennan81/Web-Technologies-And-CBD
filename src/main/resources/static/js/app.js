@@ -420,14 +420,97 @@ $(document).ready(function () {
         if (dt) dt.columns.adjust().draw();
     });
 
+
     // --- AUTH WIRING ---
 
+// Tabs
+    $('#tabLogin').on('click', () => {
+        $('#tabLogin').addClass('active');
+        $('#tabRegister').removeClass('active');
+        $('#loginPanel').show();
+        $('#registerPanel').hide();
+    });
+
+    $('#tabRegister').on('click', () => {
+        $('#tabRegister').addClass('active');
+        $('#tabLogin').removeClass('active');
+        $('#registerPanel').show();
+        $('#loginPanel').hide();
+    });
+
+// Register
+    document.getElementById('btnRegister').addEventListener('click', async () => {
+        const msg = document.getElementById('authMessage');
+
+        const username = document.getElementById('regUsername').value.trim();
+        const p1 = document.getElementById('regPassword').value;
+        const p2 = document.getElementById('regPassword2').value;
+
+        if (!username || !p1) {
+            msg.textContent = 'Username and password are required';
+            return;
+        }
+        if (p1 !== p2) {
+            msg.textContent = 'Passwords do not match';
+            return;
+        }
+
+        try {
+            msg.textContent = '';
+            await registerUser(username, p1);
+            msg.textContent = 'Registered. You can sign in now.';
+            $('#tabLogin').click();
+        } catch (e) {
+            msg.textContent = e.message || 'Register failed';
+        }
+    });
+
+// Login
+    document.getElementById('btnLogin').addEventListener('click', async () => {
+        const msg = document.getElementById('authMessage');
+
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!username || !password) {
+            msg.textContent = 'Username and password are required';
+            return;
+        }
+
+        try {
+            msg.textContent = '';
+            const token = await loginUser(username, password);
+            setToken(token);
+            showAuthedUI();
+
+            await loadGames();
+            applyFiltersAndRender();
+
+        } catch (e) {
+            clearToken();
+            showLoggedOutUI(e.message || 'Login failed');
+        }
+    });
+
+// Logout
     const logoutBtn = document.getElementById('btnLogout');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('jwtToken');
+            clearToken();
             showLoggedOutUI('Logged out.');
-            location.reload();
         });
+    }
+
+// Auto-login
+    if (getToken()) {
+        showAuthedUI();
+        loadGames()
+            .then(() => applyFiltersAndRender())
+            .catch(() => {
+                clearToken();
+                showLoggedOutUI('Session expired. Please sign in again.');
+            });
+    } else {
+        showLoggedOutUI('');
     }
 });

@@ -25,7 +25,10 @@ public class User {
 
     private String role; // e.g., "ROLE_USER" or "ROLE_ADMIN"
 
+    @Column(nullable = false)
+    private boolean enabled = true;
+
     // One user can have many games (Inverse side of the relationship)
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Game> games;
 }
