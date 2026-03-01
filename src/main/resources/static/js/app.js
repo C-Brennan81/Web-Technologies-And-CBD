@@ -757,13 +757,21 @@ $(document).ready(function () {
     $('#btnGridView').on('click', () => {
         $('#tableView').hide();
         $('#gameGrid').show();
+        $('#btnGridView').addClass('active');
+        $('#btnTableView').removeClass('active');
     });
 
     $('#btnTableView').on('click', () => {
         $('#gameGrid').hide();
         $('#tableView').show();
         if (dt) dt.columns.adjust().draw();
+        $('#btnTableView').addClass('active');
+        $('#btnGridView').removeClass('active');
     });
+
+    // Set initial active state for view toggle
+    $('#btnGridView').addClass('active');
+    $('#btnTableView').removeClass('active');
 
 
     // --- AUTH WIRING ---

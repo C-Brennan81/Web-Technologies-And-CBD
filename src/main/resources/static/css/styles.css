@@ -296,3 +296,114 @@ body {
 }
 .auth-message{ margin-top: 12px; opacity: 0.9; }
 
+/* ===== Unified UI Theme Additions ===== */
+:root {
+    --bg-2: #0b1224;
+    --card-2: rgba(13, 20, 36, 0.9);
+    --muted: rgba(248,250,252,0.75);
+    --border: rgba(255,255,255,0.12);
+    --border-strong: rgba(0,242,255,0.35);
+    --hover: rgba(0,242,255,0.08);
+    --danger: #ff4d6d;
+    --success: #00ff95;
+    --focus: #80f7ff;
+}
+
+/* Buttons (override Bootstrap and unify custom) */
+.btn, .btn-outline-light, .btn-sm, .btn-danger, .primary, .btn-import {
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 10px !important;
+    border-width: 1px !important;
+    transition: background 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+.btn, .btn-outline-light, .btn-import, .primary {
+    background: rgba(255,255,255,0.06) !important;
+    color: #fff !important;
+    border-color: var(--border) !important;
+}
+.btn:hover, .btn-outline-light:hover, .btn-import:hover, .primary:hover {
+    background: var(--hover) !important;
+    border-color: var(--border-strong) !important;
+}
+.btn:focus, .btn-outline-light:focus, .btn-import:focus, .primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,242,255,0.25) !important;
+}
+.btn-sm { padding: 6px 10px !important; font-size: 0.8rem !important; }
+.btn-danger, .btn-outline-danger { border-color: rgba(255,77,109,0.5) !important; color: #fff !important; }
+.btn-danger:hover, .btn-outline-danger:hover { background: rgba(255,77,109,0.15) !important; border-color: #ff4d6d !important; }
+
+/* View toggle active state */
+.view-toggle .btn { border-color: var(--border); background: rgba(255,255,255,0.04); }
+.view-toggle .btn.active { border-color: var(--border-strong); background: var(--hover); color: var(--text); }
+
+/* Inputs and selects */
+input[type="text"], input[type="password"], input[type="email"], select, .form-control, .form-select {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid var(--border) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+}
+input[type="text"]::placeholder, input[type="password"]::placeholder, input[type="email"]::placeholder {
+    color: var(--muted);
+}
+input:focus, select:focus, .form-control:focus, .form-select:focus {
+    outline: none !important;
+    border-color: var(--border-strong) !important;
+    box-shadow: 0 0 0 3px rgba(0,242,255,0.2) !important;
+}
+
+/* Search bar */
+.search-wrap { margin: 12px 0 8px; }
+.search-wrap input#gameSearch {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1rem;
+}
+
+/* Filters row */
+.filters select#filterPlatform, .filters select#filterStatus, .filters select#sortBy { padding: 10px 12px; }
+
+/* Tables (Bootstrap/DataTables) */
+.table-dark { --bs-table-bg: rgba(13,20,36,0.85); --bs-table-striped-bg: rgba(255,255,255,0.02); --bs-table-color: #fff; }
+.table { border-color: var(--border) !important; }
+.table thead th { background: rgba(255,255,255,0.06); border-bottom: 1px solid var(--border) !important; color: #e6f5ff; }
+.table tbody tr:hover { background: rgba(255,255,255,0.04); }
+
+/* DataTables wrapper */
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: #fff;
+    border-radius: 10px;
+}
+.dataTables_wrapper .dataTables_filter input::placeholder { color: var(--muted); }
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: #fff !important;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    margin: 0 2px;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    border-color: var(--border-strong);
+    background: var(--hover);
+    color: #fff !important;
+}
+.dataTables_wrapper .dataTables_info { color: var(--muted); }
+
+/* Admin sections */
+#adminSection h3 { letter-spacing: 0.06em; }
+#adminLaunchers .d-flex.gap-2 { gap: 10px !important; }
+
+/* Modal chart area */
+.modal-chart { min-height: 160px; border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px; }
+#noChartData { color: var(--muted); }
+
+/* Focus visibility for clickable rows/buttons */
+button:focus-visible, a:focus-visible { outline: 2px dashed var(--focus); outline-offset: 2px; }
+
