@@ -407,3 +407,58 @@ input:focus, select:focus, .form-control:focus, .form-select:focus {
 /* Focus visibility for clickable rows/buttons */
 button:focus-visible, a:focus-visible { outline: 2px dashed var(--focus); outline-offset: 2px; }
 
+
+
+/* --- New User Welcome Panel --- */
+.welcome-panel {
+    background: radial-gradient(1200px 600px at 0% -10%, rgba(0, 242, 255, 0.16), transparent 60%),
+                radial-gradient(800px 500px at 100% 110%, rgba(0, 242, 255, 0.08), transparent 60%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 36px 28px;
+    margin: 18px 0 28px;
+}
+.welcome-content { max-width: 860px; }
+.welcome-badge {
+    display: inline-block;
+    font-weight: 700;
+    letter-spacing: 1.1px;
+    font-size: 0.75rem;
+    color: black;
+    background: var(--neon);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+}
+.welcome-panel h2 {
+    margin: 0 0 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+.welcome-panel .lead { color: rgba(248,250,252,0.9); max-width: 740px; }
+.welcome-actions { display: flex; gap: 12px; margin: 16px 0 8px; flex-wrap: wrap; }
+
+.btn-neon {
+    background: var(--neon);
+    color: #000;
+    border: none;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+.btn-neon:hover { filter: brightness(0.9); color: #000; }
+
+.btn-outline-neon {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(0, 242, 255, 0.6);
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    padding: 9px 14px;
+    border-radius: 8px;
+}
+.btn-outline-neon:hover { background: rgba(0, 242, 255, 0.1); }
+
+.hint { color: rgba(248,250,252,0.7); font-size: 0.9rem; }

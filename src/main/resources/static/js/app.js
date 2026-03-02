@@ -1,4 +1,4 @@
-$(document).ready(function () {
+window.bindApp = function () {
 
     const API = '';
     const TOKEN_KEY = 'jwtToken';
@@ -62,15 +62,21 @@ $(document).ready(function () {
     }
 
     function showAuthedUI() {
-        document.getElementById('landing').style.display = 'none';
-        document.getElementById('appSection').style.display = '';
-        document.getElementById('authMessage').textContent = '';
+        const landing = document.getElementById('landing');
+        const appSection = document.getElementById('appSection');
+        const authMsg = document.getElementById('authMessage');
+        if (landing) landing.style.display = 'none';
+        if (appSection) appSection.style.display = '';
+        if (authMsg) authMsg.textContent = '';
     }
 
     function showLoggedOutUI(msg = '') {
-        document.getElementById('landing').style.display = '';
-        document.getElementById('appSection').style.display = 'none';
-        document.getElementById('authMessage').textContent = msg;
+        const landing = document.getElementById('landing');
+        const appSection = document.getElementById('appSection');
+        const authMsg = document.getElementById('authMessage');
+        if (landing) landing.style.display = '';
+        if (appSection) appSection.style.display = 'none';
+        if (authMsg) authMsg.textContent = msg;
     }
 
     // Tabs
@@ -436,6 +442,12 @@ $(document).ready(function () {
     // Import CSV -> POST to backend
     const gameFileInput = document.getElementById('gameFile');
     if (gameFileInput) {
+        // Wire the welcome panel's Upload button to trigger the file picker
+        const uploadBtn = document.getElementById('btnUploadCsv');
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', () => gameFileInput.click());
+        }
+
         gameFileInput.addEventListener('change', async () => {
             if (!gameFileInput.files || gameFileInput.files.length === 0) return;
 
@@ -457,7 +469,7 @@ $(document).ready(function () {
                 alert(text);
 
                 gameFileInput.value = '';
-                await loadGames();
+                await loadGames(); // will also refresh welcome panel visibility
 
             } catch (err) {
                 alert(err.message || 'Import failed');
@@ -600,6 +612,17 @@ $(document).ready(function () {
 
 
 
+    // New User Greeting toggle
+    function updateWelcomePanel() {
+        const panel = document.getElementById('welcomePanel');
+        if (!panel) return;
+        const isLoggedIn = !!getToken();
+        const admin = isAdmin && typeof isAdmin === 'function' ? isAdmin() : false;
+        const empty = Array.isArray(allGames) && allGames.length === 0;
+        // Show only for logged-in non-admin users with no games
+        panel.style.display = (isLoggedIn && !admin && empty) ? '' : 'none';
+    }
+
     // Data load
     async function loadGames() {
         try {
@@ -610,10 +633,12 @@ $(document).ready(function () {
             allGames = Array.isArray(data) ? data : [];
             renderCompletionRate();
             applyFiltersAndRender();
+            updateWelcomePanel();
         } catch (e) {
             console.error(e);
             $('#gameGrid').html(`<div class="text-danger">Failed to load games. Check backend logs.</div>`);
             $('#totalValue').text('0.00');
+            updateWelcomePanel();
         }
     }
 
@@ -791,68 +816,74 @@ $(document).ready(function () {
         $('#loginPanel').hide();
     });
 
-// Register
-    document.getElementById('btnRegister').addEventListener('click', async () => {
-        const msg = document.getElementById('authMessage');
+// Register (guard if element present)
+    const regBtn = document.getElementById('btnRegister');
+    if (regBtn) {
+        regBtn.addEventListener('click', async () => {
+            const msg = document.getElementById('authMessage');
 
-        const username = document.getElementById('regUsername').value.trim();
-        const p1 = document.getElementById('regPassword').value;
-        const p2 = document.getElementById('regPassword2').value;
+            const username = (document.getElementById('regUsername') || {}).value?.trim?.() || '';
+            const p1 = (document.getElementById('regPassword') || {}).value || '';
+            const p2 = (document.getElementById('regPassword2') || {}).value || '';
 
-        if (!username || !p1) {
-            msg.textContent = 'Username and password are required';
-            return;
-        }
-        if (p1 !== p2) {
-            msg.textContent = 'Passwords do not match';
-            return;
-        }
-
-        try {
-            msg.textContent = '';
-            await registerUser(username, p1);
-            msg.textContent = 'Registered. You can sign in now.';
-            $('#tabLogin').click();
-        } catch (e) {
-            msg.textContent = e.message || 'Register failed';
-        }
-    });
-
-// Login
-    document.getElementById('btnLogin').addEventListener('click', async () => {
-        const msg = document.getElementById('authMessage');
-
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value;
-
-        if (!username || !password) {
-            msg.textContent = 'Username and password are required';
-            return;
-        }
-
-        try {
-            msg.textContent = '';
-            const token = await loginUser(username, password);
-            setToken(token);
-            showAuthedUI();
-            updateAdminPanelsVisibility();
-
-            if (isUser()) {
-                await loadGames();
-                applyFiltersAndRender();
-            } else {
-                // Admin-only session: do not hit user-only endpoints
-                $('#gameGrid').empty();
-                $('#totalValue').text('0.00');
+            if (!username || !p1) {
+                if (msg) msg.textContent = 'Username and password are required';
+                return;
+            }
+            if (p1 !== p2) {
+                if (msg) msg.textContent = 'Passwords do not match';
+                return;
             }
 
-        } catch (e) {
-            clearToken();
-            showLoggedOutUI(e.message || 'Login failed');
-        }
-    });
+            try {
+                if (msg) msg.textContent = '';
+                await registerUser(username, p1);
+                if (msg) msg.textContent = 'Registered. You can sign in now.';
+                $('#tabLogin').click();
+            } catch (e) {
+                if (msg) msg.textContent = e.message || 'Register failed';
+            }
+        });
+    }
 
-// Logout
+// Login (guard if element present)
+    const loginBtn = document.getElementById('btnLogin');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', async () => {
+            const msg = document.getElementById('authMessage');
+
+            const username = (document.getElementById('loginUsername') || {}).value?.trim?.() || '';
+            const password = (document.getElementById('loginPassword') || {}).value || '';
+
+            if (!username || !password) {
+                if (msg) msg.textContent = 'Username and password are required';
+                return;
+            }
+
+            try {
+                if (msg) msg.textContent = '';
+                const token = await loginUser(username, password);
+                setToken(token);
+                showAuthedUI();
+                updateAdminPanelsVisibility();
+
+                if (isUser()) {
+                    await loadGames();
+                    applyFiltersAndRender();
+                } else {
+                    // Admin-only session: do not hit user-only endpoints
+                    $('#gameGrid').empty();
+                    $('#totalValue').text('0.00');
+                }
+
+            } catch (e) {
+                clearToken();
+                showLoggedOutUI(e.message || 'Login failed');
+            }
+        });
+    }
+
+// Logout (guard if element present)
     const logoutBtn = document.getElementById('btnLogout');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
@@ -880,4 +911,4 @@ $(document).ready(function () {
     } else {
         showLoggedOutUI('');
     }
-});
+};

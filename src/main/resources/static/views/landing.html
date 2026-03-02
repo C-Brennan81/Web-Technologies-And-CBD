@@ -1,0 +1,29 @@
+<div id="landing" class="landing">
+    <div class="landing-card">
+        <h1 class="landing-title">GameLibrary Vault</h1>
+        <p class="landing-sub">Sign in to access your private library.</p>
+
+        <div class="tabs">
+            <button id="tabLogin" class="tab active" type="button">Sign In</button>
+            <button id="tabRegister" class="tab" type="button">Register</button>
+        </div>
+
+        <!-- LOGIN -->
+        <div id="loginPanel">
+            <input id="loginUsername" type="text" placeholder="Username" autocomplete="username" />
+            <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password" />
+            <button id="btnLogin" type="button" class="primary">Sign In</button>
+        </div>
+
+        <!-- REGISTER -->
+        <div id="registerPanel" style="display:none;">
+            <input id="regUsername" type="text" placeholder="Username" autocomplete="username" />
+            <input id="regEmail" type="email" placeholder="Email" autocomplete="email" />
+            <input id="regPassword" type="password" placeholder="Password" autocomplete="new-password" />
+            <input id="regPassword2" type="password" placeholder="Confirm Password" autocomplete="new-password" />
+            <button id="btnRegister" type="button" class="primary">Create Account</button>
+        </div>
+
+        <p id="authMessage" class="auth-message"></p>
+    </div>
+</div>
