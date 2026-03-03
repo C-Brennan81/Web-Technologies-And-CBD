@@ -1,5 +1,4 @@
 (function(){
-  // Phase A activation + Phase B: hash router that injects view partials
   const TOKEN_KEY = 'jwtToken';
   const VIEW_BASE = '/views';
   const cache = new Map(); // simple in-memory view cache

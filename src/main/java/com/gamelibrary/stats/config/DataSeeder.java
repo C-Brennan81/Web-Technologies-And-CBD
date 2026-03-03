@@ -54,12 +54,12 @@ public class DataSeeder implements CommandLineRunner {
             return userRepository.save(u);
         });
 
-        // 3) Seed sample games ONLY if demo user has none
-        if (gameService.countGamesForUser(demo.getUsername()) == 0) {
-            String result = gameService.importGamesFromClasspathForUser("GameData2.csv", demo.getUsername());
-            System.out.println(result);
-        } else {
-            System.out.println("Demo user already has games. Skipping CSV seed.");
-        }
+//        // 3) Seed sample games ONLY if demo user has none
+//        if (gameService.countGamesForUser(demo.getUsername()) == 0) {
+//            String result = gameService.importGamesFromClasspathForUser("GameData2.csv", demo.getUsername());
+//            System.out.println(result);
+//        } else {
+//            System.out.println("Demo user already has games. Skipping CSV seed.");
+//        }
     }
 }
