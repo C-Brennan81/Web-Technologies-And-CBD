@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  mysql-ci:
+    image: mysql:8.0
+    container_name: gamingstats-mysql-ci
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gamingstats-ci
+      MYSQL_USER: ci
+      MYSQL_PASSWORD: ci
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uci", "-pci"]
+      interval: 5s
+      timeout: 5s
+      retries: 30

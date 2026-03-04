@@ -1,8 +1,11 @@
 package com.gamelibrary.stats.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
@@ -11,6 +14,8 @@ import java.util.*;
 
 @Component
 public class SteamGridDbClient {
+
+    private static final Logger log = LoggerFactory.getLogger(SteamGridDbClient.class);
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -21,10 +26,26 @@ public class SteamGridDbClient {
      * Returns a single best cover URL (grid) for a game name, or null if not found.
      */
     public String findCoverUrlByName(String gameName) {
-        Integer gameId = searchGameId(gameName);
-        if (gameId == null) return null;
+        try {
+            Integer gameId = searchGameId(gameName);
+            if (gameId == null) {
+                log.debug("[SteamGridDB] No gameId found for '{}'", gameName);
+                return null;
+            }
 
-        return fetchBestGrid(gameId);
+            String url = fetchBestGrid(gameId);
+            if (url == null) {
+                // Retry without dimensions as a fallback
+                url = fetchBestGrid(gameId, false);
+            }
+            if (url == null) {
+                log.debug("[SteamGridDB] No grid found for '{}' (id={})", gameName, gameId);
+            }
+            return url;
+        } catch (Exception e) {
+            log.warn("[SteamGridDB] Error while fetching cover for '{}': {}", gameName, e.toString());
+            return null;
+        }
     }
 
     private Integer searchGameId(String gameName) {
@@ -47,8 +68,11 @@ public class SteamGridDbClient {
     }
 
     private String fetchBestGrid(int gameId) {
-        // You can try other grid sizes/styles; this is a good default.
-        String url = "https://www.steamgriddb.com/api/v2/grids/game/" + gameId + "?dimensions=600x900";
+        return fetchBestGrid(gameId, true);
+    }
+
+    private String fetchBestGrid(int gameId, boolean withDimensions) {
+        String url = "https://www.steamgriddb.com/api/v2/grids/game/" + gameId + (withDimensions ? "?dimensions=600x900" : "");
 
         Map<?, ?> json = getJson(url);
         if (json == null) return null;
@@ -61,19 +85,33 @@ public class SteamGridDbClient {
         if (!(first instanceof Map<?, ?> firstMap)) return null;
 
         Object urlObj = firstMap.get("url");
-        return (urlObj instanceof String s) ? s : null;
+        if (urlObj instanceof String s && !s.isBlank()) return s;
+
+        Object thumbObj = firstMap.get("thumb");
+        return (thumbObj instanceof String ts && !ts.isBlank()) ? ts : null;
     }
 
     private Map<?, ?> getJson(String url) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(apiKey);
-        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(apiKey);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<Map> resp = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+            ResponseEntity<Map> resp = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
 
-        if (!resp.getStatusCode().is2xxSuccessful()) return null;
-        return resp.getBody();
+            if (!resp.getStatusCode().is2xxSuccessful()) {
+                log.warn("[SteamGridDB] Non-2xx status {} for URL {}", resp.getStatusCode(), url);
+                return null;
+            }
+            return resp.getBody();
+        } catch (RestClientException ex) {
+            log.warn("[SteamGridDB] HTTP error for URL {}: {}", url, ex.toString());
+            return null;
+        } catch (Exception ex) {
+            log.warn("[SteamGridDB] Unexpected error for URL {}: {}", url, ex.toString());
+            return null;
+        }
     }
 }

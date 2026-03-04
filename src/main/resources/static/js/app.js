@@ -16,7 +16,13 @@
         const token = getToken();
         const headers = options.headers ? { ...options.headers } : {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        return fetch(API + url, { ...options, headers });
+        const res = await fetch(API + url, { ...options, headers });
+        if ((res.status === 401 || res.status === 403) && !options.__skipAuthHandler) {
+            // Token missing/expired or access denied: auto-logout to recover UI from forbidden state
+            try { clearToken(); } catch {}
+            if (location.hash !== '#/login') location.hash = '#/login';
+        }
+        return res;
     }
 
     async function loginUser(username, password) {
@@ -449,9 +455,24 @@
             if (tableWrap) tableWrap.style.display = mode === 'table' ? 'block' : 'none';
         }
 
+        function formatHours(val){
+            if (val == null || isNaN(Number(val))) return '0h';
+            const n = Math.round(Number(val) * 10) / 10;
+            return `${n.toFixed(1)}h`;
+        }
+        function formatHoursRaw(val){
+            if (val == null || isNaN(Number(val))) return '';
+            const n = Math.round(Number(val) * 10) / 10;
+            return n.toFixed(1);
+        }
+        function formatPrice(val){
+            if (val == null || isNaN(Number(val))) return '€0.00';
+            return `€${Number(val).toFixed(2)}`;
+        }
+
         function cardHtml(g){
-            const price = (g.purchasePrice != null) ? `€${Number(g.purchasePrice).toFixed(2)}` : '€0.00';
-            const hours = (g.playTimeHours != null) ? `${Number(g.playTimeHours)}h` : '0h';
+            const price = formatPrice(g.purchasePrice);
+            const hours = formatHours(g.playTimeHours);
             const cover = g.coverUrl ? `style="background-image:url('${g.coverUrl}')"` : '';
             return `
             <div class="poster-card" data-id="${g.id}">
@@ -489,8 +510,8 @@
                   <td>${text(g.platform)}</td>
                   <td>${text(g.completionStatus || 'NOT PLAYED')}</td>
                   <td>${text(g.genre)}</td>
-                  <td>${g.playTimeHours != null ? Number(g.playTimeHours) : ''}</td>
-                  <td>${g.purchasePrice != null ? '€'+Number(g.purchasePrice).toFixed(2) : ''}</td>
+                  <td>${formatHoursRaw(g.playTimeHours)}</td>
+                  <td>${g.purchasePrice != null ? formatPrice(g.purchasePrice) : ''}</td>
                 </tr>
             `).join('');
             tableBody.querySelectorAll('tr').forEach(tr=>{
@@ -573,16 +594,19 @@
                     const f = fileInput.files && fileInput.files[0];
                     if (!f) return;
                     try{
+                        // Ask the user whether to exclude demos/betas/playtests
+                        const exclude = confirm('Exclude demos/betas/playtests from import? Click OK to exclude, Cancel to include all.');
                         const fd = new FormData();
                         fd.append('file', f);
-                        fd.append('excludeNonFull', 'true');
+                        fd.append('excludeNonFull', exclude ? 'true' : 'false');
                         const res = await apiFetch('/api/games/upload', { method: 'POST', body: fd });
+                        const t = await res.text();
                         if (!res.ok){
-                            const t = await res.text();
                             alert('Upload failed: ' + t);
                         } else {
                             await loadAndRender();
-                            alert('Import completed');
+                            // Show backend summary (saved/skipped info)
+                            alert(t || 'Import completed');
                         }
                     }catch(e){
                         alert('Upload error');
@@ -593,6 +617,11 @@
             }
         }
 
+        let __modalChart = null;
+        function destroyModalChart(){
+            try { if (__modalChart) { __modalChart.destroy(); } } catch {}
+            __modalChart = null;
+        }
         function openModal(g){
             const modal = document.getElementById('gameModal');
             const closeBtn = document.getElementById('modalClose');
@@ -603,7 +632,7 @@
             const genre = document.getElementById('modalGenre');
             const hours = document.getElementById('modalHours');
             const price = document.getElementById('modalPrice');
-            const chart = document.getElementById('gameStatsChart');
+            const chartCanvas = document.getElementById('gameStatsChart');
             const noChart = document.getElementById('noChartData');
             if (!modal) return;
 
@@ -611,8 +640,8 @@
             p.textContent = text(g.platform);
             s.textContent = text(g.completionStatus || 'NOT PLAYED');
             genre.textContent = text(g.genre);
-            hours.textContent = (g.playTimeHours != null ? Number(g.playTimeHours) + ' h' : '0 h');
-            price.textContent = (g.purchasePrice != null ? '€' + Number(g.purchasePrice).toFixed(2) : '€0.00');
+            hours.textContent = formatHours(g.playTimeHours);
+            price.textContent = formatPrice(g.purchasePrice);
 
             // cover
             ensureCover(g).then(()=>{
@@ -623,19 +652,63 @@
                 }
             });
 
-            if (chart) chart.style.display = 'none';
-            if (noChart) noChart.style.display = 'block';
+            // Build a simple per-game chart if we have any meaningful data
+            destroyModalChart();
+            if (chartCanvas && window.Chart){
+                const hasHours = g.playTimeHours != null && !isNaN(Number(g.playTimeHours)) && Number(g.playTimeHours) > 0;
+                const hasPrice = g.purchasePrice != null && !isNaN(Number(g.purchasePrice)) && Number(g.purchasePrice) > 0;
+
+                if (hasHours || hasPrice){
+                    if (noChart) noChart.style.display = 'none';
+                    chartCanvas.style.display = 'block';
+
+                    const labels = [];
+                    const data = [];
+                    if (hasHours){ labels.push('Hours'); data.push(Math.round(Number(g.playTimeHours) * 10) / 10); }
+                    if (hasPrice){ labels.push('Price (€)'); data.push(Number(g.purchasePrice)); }
+
+                    const ctx = chartCanvas.getContext('2d');
+                    __modalChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Game Stats',
+                                data,
+                                borderRadius: 6,
+                                backgroundColor: ['#00f7ff55','#ff00d455'],
+                                borderColor: ['#00F7FF','#FF00D4']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { ticks: { color: '#C8D0E0' }, grid: { display:false } },
+                                y: { ticks: { color: '#C8D0E0' }, grid: { color:'#223' }, beginAtZero: true }
+                            }
+                        }
+                    });
+                } else {
+                    chartCanvas.style.display = 'none';
+                    if (noChart) noChart.style.display = 'block';
+                }
+            } else {
+                if (chartCanvas) chartCanvas.style.display = 'none';
+                if (noChart) noChart.style.display = 'block';
+            }
 
             modal.style.display = 'block';
 
             if (closeBtn && !closeBtn.dataset.bound){
                 closeBtn.dataset.bound = '1';
-                closeBtn.addEventListener('click', ()=>{ modal.style.display = 'none'; });
+                closeBtn.addEventListener('click', ()=>{ destroyModalChart(); modal.style.display = 'none'; });
             }
             if (!modal.dataset.bound){
                 modal.dataset.bound = '1';
                 modal.addEventListener('click', (e)=>{
-                    if (e.target === modal) modal.style.display = 'none';
+                    if (e.target === modal) { destroyModalChart(); modal.style.display = 'none'; }
                 });
             }
         }

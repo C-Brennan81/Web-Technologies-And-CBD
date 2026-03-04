@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface LauncherRepository extends JpaRepository<Launcher, Long> {
     // Custom method to find a launcher by name during CSV import
     Optional<Launcher> findByName(String name);
+    Optional<Launcher> findByNameIgnoreCase(String name);
 }

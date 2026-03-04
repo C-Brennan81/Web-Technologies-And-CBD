@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gamelibrarystats</a> &gt; <a href="index.source.html" class="el_package">com.gamelibrary.stats.controller</a> &gt; <span class="el_source">GameController.java</span></div><h1>GameController.java</h1><pre class="source lang-java linenums">package com.gamelibrary.stats.controller;
+
+import com.gamelibrary.stats.dto.GameDTO;
+import com.gamelibrary.stats.service.GameService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import org.springframework.security.core.Authentication;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.security.core.Authentication;
+
+@RestController
+@RequestMapping(&quot;/api/games&quot;)
+<span class="nc" id="L20">public class GameController {</span>
+
+    @Autowired
+    private GameService gameService;
+
+    @GetMapping
+    public List&lt;GameDTO&gt; getMyGames(Authentication auth) {
+<span class="nc" id="L27">        return gameService.getMyGames(auth.getName());</span>
+    }
+
+    @GetMapping(&quot;/{id}/cover&quot;)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; getCover(@PathVariable Long id, Authentication auth) {
+<span class="nc" id="L32">        return gameService.getOrFetchCoverForUser(id, auth.getName())</span>
+<span class="nc" id="L33">                .map(url -&gt; ResponseEntity.ok(Map.of(&quot;coverUrl&quot;, url)))</span>
+<span class="nc" id="L34">                .orElseGet(() -&gt; ResponseEntity.ok(Map.of(&quot;coverUrl&quot;, &quot;&quot;)));</span>
+    }
+
+
+    @PostMapping(&quot;/upload&quot;)
+    public ResponseEntity&lt;String&gt; uploadGames(
+            @RequestParam(&quot;file&quot;) MultipartFile file,
+            @RequestParam(name = &quot;excludeNonFull&quot;, defaultValue = &quot;true&quot;) boolean excludeNonFull,
+            Authentication auth
+    ) {
+        try {
+<span class="nc" id="L45">            String result = gameService.importGames(file, auth.getName(), excludeNonFull);</span>
+<span class="nc" id="L46">            return ResponseEntity.ok(result);</span>
+<span class="nc" id="L47">        } catch (Exception e) {</span>
+<span class="nc" id="L48">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L49">                    .body(&quot;Error processing file: &quot; + e.getMessage());</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

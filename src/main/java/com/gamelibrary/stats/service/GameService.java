@@ -2,6 +2,7 @@ package com.gamelibrary.stats.service;
 
 import com.gamelibrary.stats.dto.GameDTO;
 import com.gamelibrary.stats.model.Game;
+import com.gamelibrary.stats.model.Launcher;
 import com.gamelibrary.stats.repository.GameRepository;
 import com.gamelibrary.stats.repository.LauncherRepository;
 import com.opencsv.CSVReader;
@@ -45,19 +46,31 @@ public class GameService {
         return importGames(file, username, true);
     }
 
-    public String importGames(InputStream inputStream, String username, boolean excludeNonFull) throws Exception {        int savedCount = 0;
+    public String importGames(InputStream inputStream, String username, boolean excludeNonFull) throws Exception {
+        int savedCount = 0;
         int skippedCount = 0;
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-            String[] line;
-            reader.readNext(); // header
+            String[] header = reader.readNext(); // header
+            if (header == null) return "Empty CSV";
 
-            while ((line = reader.readNext()) != null) {
+            // Build a normalized header name -> index map (tolerant to variants)
+            java.util.Map<String,Integer> idx = new java.util.HashMap<>();
+            for (int i=0; i<header.length; i++) {
+                String key = normalizeHeader(header[i]);
+                if (!key.isBlank()) idx.put(key, i);
+            }
 
-                String title = safe(line, 0);
+            // Row loop
+            String[] currentLine;
+            while ((currentLine = reader.readNext()) != null) {
+                String title = firstNonNull(
+                        safe(currentLine, idx.getOrDefault("name", -1)),
+                        safe(currentLine, idx.getOrDefault("title", -1))
+                );
                 if (title == null || title.isBlank()) {
                     skippedCount++;
                     continue;
@@ -72,40 +85,59 @@ public class GameService {
                 game.setTitle(title.trim());
                 game.setUser(user);
 
-                String genres = safe(line, 4);
+                String genres = firstNonNull(
+                        safe(currentLine, idx.getOrDefault("genres", -1)),
+                        safe(currentLine, idx.getOrDefault("genre", -1))
+                );
                 game.setGenres(genres);
                 game.setGenre(firstGenre(genres));
 
-                String completion = safe(line, 6);
+                String completionRaw = firstNonNull(
+                        safe(currentLine, idx.getOrDefault("completionstatus", -1)),
+                        safe(currentLine, idx.getOrDefault("status", -1))
+                );
+                String completion = normalizeCompletionStatus(completionRaw);
                 game.setCompletionStatus(completion);
                 game.setStatus(completion);
 
-                Integer seconds = parseIntSafe(safe(line, 7));
-                game.setTimePlayed(seconds);
+                // Time Played: assume seconds if large; attempt parse as integer
+                Integer timeVal = parseIntSafe(firstNonNull(
+                        safe(currentLine, idx.getOrDefault("timeplayed", -1)),
+                        safe(currentLine, idx.getOrDefault("playtime", -1))
+                ));
+                game.setTimePlayed(timeVal);
 
-
-                //Parsing/ Skip Lines
-                String source = safe(line, 8);
-                if (source == null || source.isBlank()) {
+                String sourceRaw = firstNonNull(
+                        safe(currentLine, idx.getOrDefault("sources", -1)),
+                        safe(currentLine, idx.getOrDefault("source", -1)),
+                        safe(currentLine, idx.getOrDefault("launcher", -1)),
+                        safe(currentLine, idx.getOrDefault("platform", -1))
+                );
+                if (sourceRaw == null || sourceRaw.isBlank()) {
                     skippedCount++;
                     continue;
                 }
+                String normalizedLauncherName = normalizeLauncherName(sourceRaw);
 
-                var launcherOpt = launcherRepository.findByName(source.trim());
-                if (launcherOpt.isEmpty()) {
-                    skippedCount++;
-                    continue;
-                }
-                game.setLauncher(launcherOpt.get());
+                // Resolve or create launcher (case-insensitive)
+                Optional<Launcher> launcherOpt = launcherRepository.findByNameIgnoreCase(normalizedLauncherName);
+                Launcher launcher = launcherOpt.orElseGet(() -> {
+                    Launcher l = new Launcher();
+                    l.setName(normalizedLauncherName);
+                    return launcherRepository.save(l);
+                });
+                game.setLauncher(launcher);
 
                 double price = 5.0 + (55.0 * random.nextDouble());
                 game.setPurchasePrice(Math.round(price * 100.0) / 100.0);
 
-                game.setAgeRating(safe(line, 1));
-                game.setDevelopers(safe(line, 2));
-                game.setPublishers(safe(line, 3));
-                game.setCommunityScore(parseDoubleSafe(safe(line, 9)));
-
+                game.setAgeRating(firstNonNull(
+                        safe(currentLine, idx.getOrDefault("agerating", -1)),
+                        safe(currentLine, idx.getOrDefault("age", -1))
+                ));
+                game.setDevelopers(safe(currentLine, idx.getOrDefault("developers", -1)));
+                game.setPublishers(safe(currentLine, idx.getOrDefault("publishers", -1)));
+                game.setCommunityScore(parseDoubleSafe(safe(currentLine, idx.getOrDefault("communityscore", -1))));
 
                 if (gameRepository.existsByUserUsernameAndTitleAndLauncher_Name(
                         username, game.getTitle(), game.getLauncher().getName()
@@ -119,7 +151,7 @@ public class GameService {
             }
         }
 
-        return "Import complete! Successfully saved " + savedCount + " games. Skipped " + skippedCount + " bad rows.";
+        return "Import complete! Successfully saved " + savedCount + " games. Skipped " + skippedCount + " rows.";
     }
 
     public String importGames(InputStream inputStream, String username) throws Exception {
@@ -235,4 +267,39 @@ public class GameService {
         });
     }
 
+    // ---- Helpers for tolerant CSV parsing ----
+    private static String normalizeHeader(String h) {
+        if (h == null) return "";
+        String k = h.toLowerCase();
+        // remove non-alphanumeric characters
+        k = k.replaceAll("[^a-z0-9]+", "");
+        return k.trim();
+    }
+
+    private static String firstNonNull(String... vals) {
+        if (vals == null) return null;
+        for (String v : vals) {
+            if (v != null && !v.isBlank()) return v;
+        }
+        return null;
+    }
+
+    private static String normalizeCompletionStatus(String status) {
+        if (status == null || status.isBlank()) return "NOT PLAYED";
+        String s = status.trim().toUpperCase();
+        if (s.contains("NOT") && s.contains("PLAYED")) return "NOT PLAYED";
+        if (s.contains("PLAYED") && !s.contains("NOT")) return "PLAYED";
+        if (s.contains("COMPLETE")) return "COMPLETED";
+        return s;
+    }
+
+    private static String normalizeLauncherName(String name) {
+        if (name == null) return null;
+        String n = name.trim();
+        // Common aliases mapping
+        if (n.equalsIgnoreCase("Ubisoft Connect")) return "Ubisoft";
+        if (n.equalsIgnoreCase("EA App") || n.equalsIgnoreCase("Origin")) return "EA";
+        if (n.equalsIgnoreCase("Microsoft Store") || n.equalsIgnoreCase("Xbox")) return "Xbox";
+        return n;
+    }
 }

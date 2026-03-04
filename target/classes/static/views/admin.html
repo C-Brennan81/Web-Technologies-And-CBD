@@ -1,0 +1,52 @@
+<div id="appSection">
+  <div class="bg-glow"></div>
+  <div class="container-fluid px-5 py-4">
+    <header class="row mb-5 align-items-center">
+      <div class="col-md-6">
+        <h1 class="logo">ADMIN <span class="text-neon">CONTROL PANEL</span></h1>
+        <p class="text-muted tracking-widest">SYSTEM OPERATIONS // USER AND LAUNCHER MANAGEMENT</p>
+      </div>
+      <div class="col-md-6 text-end">
+        <button id="btnLogout" type="button" class="btn btn-outline-light btn-sm">LOG OUT</button>
+      </div>
+    </header>
+
+    <div id="adminSection" class="mt-2">
+      <h3 class="text-light mb-3">Admin: Users</h3>
+      <div class="table-responsive">
+        <table class="table table-dark table-striped align-middle" id="usersTable">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Enabled</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="adminLaunchers" class="mt-4">
+        <h3 class="text-light mb-3">Admin: Launchers</h3>
+        <div class="d-flex gap-2 mb-3">
+          <input id="launcherNameInput" class="form-control" placeholder="New launcher name (e.g. Amazon Games)">
+          <button id="btnAddLauncher" class="btn btn-outline-light">Add</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle" id="launchersTable">
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th style="width: 220px;">Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

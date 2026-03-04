@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3307/gamingstats-ci?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ci
+    password: ci
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  sql:
+    init:
+      mode: never
