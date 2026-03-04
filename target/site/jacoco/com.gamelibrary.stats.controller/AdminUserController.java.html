@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminUserController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gamelibrarystats</a> &gt; <a href="index.source.html" class="el_package">com.gamelibrary.stats.controller</a> &gt; <span class="el_source">AdminUserController.java</span></div><h1>AdminUserController.java</h1><pre class="source lang-java linenums">package com.gamelibrary.stats.controller;
+
+import com.gamelibrary.stats.model.User;
+import com.gamelibrary.stats.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/admin/users&quot;)
+public class AdminUserController {
+
+    private final UserRepository userRepo;
+
+<span class="nc" id="L17">    public AdminUserController(UserRepository userRepo) {</span>
+<span class="nc" id="L18">        this.userRepo = userRepo;</span>
+<span class="nc" id="L19">    }</span>
+
+    // DTO so we don’t leak password hash
+<span class="nc" id="L22">    public record AdminUserRow(Long id, String username, String role, boolean enabled) {}</span>
+
+<span class="nc" id="L24">    public record UpdateRoleRequest(String role) {}</span>
+<span class="nc" id="L25">    public record UpdateEnabledRequest(boolean enabled) {}</span>
+
+    @GetMapping
+    public List&lt;AdminUserRow&gt; listUsers() {
+<span class="nc" id="L29">        return userRepo.findAll().stream()</span>
+<span class="nc" id="L30">                .map(u -&gt; new AdminUserRow(u.getId(), u.getUsername(), u.getRole(), u.isEnabled()))</span>
+<span class="nc" id="L31">                .toList();</span>
+    }
+
+    @PatchMapping(&quot;/{id}/role&quot;)
+    @Transactional
+    public ResponseEntity&lt;?&gt; updateRole(@PathVariable Long id, @RequestBody UpdateRoleRequest req) {
+<span class="nc bnc" id="L37" title="All 6 branches missed.">        if (req == null || req.role() == null || req.role().isBlank()) {</span>
+<span class="nc" id="L38">            return ResponseEntity.badRequest().body(&quot;Role is required&quot;);</span>
+        }
+
+<span class="nc" id="L41">        String role = req.role().trim().toUpperCase();</span>
+<span class="nc bnc" id="L42" title="All 4 branches missed.">        if (!role.equals(&quot;ROLE_USER&quot;) &amp;&amp; !role.equals(&quot;ROLE_ADMIN&quot;)) {</span>
+<span class="nc" id="L43">            return ResponseEntity.badRequest().body(&quot;Role must be ROLE_USER or ROLE_ADMIN&quot;);</span>
+        }
+
+<span class="nc" id="L46">        var userOpt = userRepo.findById(id);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (userOpt.isEmpty()) return ResponseEntity.notFound().build();</span>
+
+<span class="nc" id="L49">        User user = userOpt.get();</span>
+<span class="nc" id="L50">        user.setRole(role);</span>
+<span class="nc" id="L51">        userRepo.save(user);</span>
+
+<span class="nc" id="L53">        return ResponseEntity.ok(&quot;Role updated&quot;);</span>
+    }
+
+    @PatchMapping(&quot;/{id}/enabled&quot;)
+    @Transactional
+    public ResponseEntity&lt;?&gt; updateEnabled(@PathVariable Long id, @RequestBody UpdateEnabledRequest req) {
+<span class="nc" id="L59">        var userOpt = userRepo.findById(id);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (userOpt.isEmpty()) return ResponseEntity.notFound().build();</span>
+
+<span class="nc" id="L62">        User user = userOpt.get();</span>
+<span class="nc" id="L63">        user.setEnabled(req.enabled());</span>
+<span class="nc" id="L64">        userRepo.save(user);</span>
+
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        return ResponseEntity.ok(req.enabled() ? &quot;User enabled&quot; : &quot;User disabled&quot;);</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;?&gt; deleteUser(@PathVariable Long id) {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (!userRepo.existsById(id)) return ResponseEntity.notFound().build();</span>
+
+        // If your User has cascade+orphanRemoval on games, this deletes their games too
+<span class="nc" id="L74">        userRepo.deleteById(id);</span>
+
+<span class="nc" id="L76">        return ResponseEntity.ok(&quot;User and their data deleted&quot;);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

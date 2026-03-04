@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: gamingStats
+  datasource:
+    url: jdbc:mysql://localhost:3306/gamingstats
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      format_sql: false
+      ddl-auto: create
+    defer-datasource-initialization: true
+    jpa:
+      show-sql: false
+  sql:
+    init:
+      mode: always
+server:
+  port: 8081
+  error:
+    include-stacktrace: always
+    include-exception: true
+logging:
+  file:
+    name: logs/import-validation.log
+  level:
+    root: ERROR
+    com.tus.services: INFO
+
+steamgriddb:
+  apiKey: 545b1a8284ee4886bc2ae302bac04476
+
+security:
+  jwt:
+    secret: "wdpoiwehfd9803hfbiwdaoihsoifhg398uph0uj109dhbigdubfgv9u82gd98phd10"
+    expirationMinutes: 120
+
