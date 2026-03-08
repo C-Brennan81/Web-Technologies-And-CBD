@@ -8,14 +8,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@SpringBootTest(
-        classes = GameLibraryStatsApp.class,
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
-class AuthKarateRunnerTest {
+@SpringBootTest(classes = GameLibraryStatsApp.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class GamesKarateRunnerTest {
 
-    @LocalServerPort
-    private int port;
+    @LocalServerPort int port;
 
     @BeforeAll
     void beforeAll() {
@@ -23,7 +19,7 @@ class AuthKarateRunnerTest {
     }
 
     @Karate.Test
-    Karate auth() {
-        return Karate.run("classpath:karate/auth/auth.feature");
+    Karate games() {
+        return Karate.run("classpath:karate/games/games.feature");
     }
 }
