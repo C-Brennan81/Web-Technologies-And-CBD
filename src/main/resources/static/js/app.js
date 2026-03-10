@@ -475,12 +475,12 @@
             const hours = formatHours(g.playTimeHours);
             const cover = g.coverUrl ? `style="background-image:url('${g.coverUrl}')"` : '';
             return `
-            <div class="poster-card" data-id="${g.id}">
-              <div class="poster" ${cover}></div>
-              <div class="poster-meta">
-                <div class="title">${text(g.title)}</div>
-                <div class="sub">${text(g.platform)} • ${text(g.completionStatus || 'NOT PLAYED')} • ${hours} • ${price}</div>
-              </div>
+            <div class="game-poster poster-card" data-id="${g.id}">
+            <div class="poster-img poster" ${cover}></div>
+            <div class="poster-info poster-meta">
+                      <div class="title">${text(g.title)}</div>
+                  <div class="sub">${text(g.platform)} • ${text(g.completionStatus || 'NOT PLAYED')} • ${hours} • ${price}</div>
+                </div>
             </div>`;
         }
 
@@ -540,7 +540,7 @@
                 if (data.coverUrl){
                     g.coverUrl = data.coverUrl;
                     // update any poster element on screen
-                    const card = document.querySelector(`.poster-card[data-id="${g.id}"] .poster`);
+                    const card = document.querySelector(`.poster-card[data-id="${g.id}"] .poster-img`);
                     if (card) card.style.backgroundImage = `url('${g.coverUrl}')`;
                 }
                 return g.coverUrl || '';
