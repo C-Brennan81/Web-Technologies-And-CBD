@@ -383,6 +383,7 @@
         const welcome = document.getElementById('welcomePanel');
         const fileInput = document.getElementById('gameFile');
         const btnUploadCsv = document.getElementById('btnUploadCsv');
+        const btnImport = document.getElementById('btnImport');
         const totalValueEl = document.getElementById('totalValue');
         const completionEl = document.getElementById('completionValue');
 
@@ -397,10 +398,28 @@
             return String(v);
         }
 
+        function calculateGameCompletion(g){
+            const hours = Number(g.playTimeHours || 0);
+            const price = Number(g.purchasePrice || 0);
+
+            if (hours <= 0) return 0;
+
+            // Free / missing-price games:
+            // if they have playtime, count them as complete
+            if (!price || price <= 0) return 100;
+
+            return Math.min((hours / price) * 100, 100);
+        }
+
         function computeStats(list){
             const total = list.reduce((sum, g) => sum + (Number(g.purchasePrice) || 0), 0);
-            const completed = list.filter(g => String(g.completionStatus || '').toUpperCase() === 'COMPLETED').length;
-            const pct = list.length ? Math.round((completed / list.length) * 100) : 0;
+
+            const completionTotal = list.reduce((sum, g) => {
+                return sum + calculateGameCompletion(g);
+            }, 0);
+
+            const pct = list.length ? Math.round(completionTotal / list.length) : 0;
+
             if (totalValueEl) totalValueEl.textContent = total.toFixed(2);
             if (completionEl) completionEl.textContent = pct + '%';
         }
@@ -436,7 +455,7 @@
 
         function applyFilters(){
             const filtered = sortGames(allGames.filter(passesFilters));
-            computeStats(filtered);
+            computeStats(allGames);
             render(filtered);
             toggleWelcome(filtered.length);
         }
@@ -588,24 +607,30 @@
                 btnUploadCsv.dataset.bound = '1';
                 btnUploadCsv.addEventListener('click', ()=> fileInput?.click());
             }
+
+            if (btnImport && !btnImport.dataset.bound){
+                btnImport.dataset.bound = '1';
+                btnImport.addEventListener('click', ()=> fileInput?.click());
+            }
+
             if (fileInput && !fileInput.dataset.bound){
                 fileInput.dataset.bound = '1';
                 fileInput.addEventListener('change', async ()=>{
                     const f = fileInput.files && fileInput.files[0];
                     if (!f) return;
                     try{
-                        // Ask the user whether to exclude demos/betas/playtests
                         const exclude = confirm('Exclude demos/betas/playtests from import? Click OK to exclude, Cancel to include all.');
                         const fd = new FormData();
                         fd.append('file', f);
                         fd.append('excludeNonFull', exclude ? 'true' : 'false');
+
                         const res = await apiFetch('/api/games/upload', { method: 'POST', body: fd });
                         const t = await res.text();
+
                         if (!res.ok){
                             alert('Upload failed: ' + t);
                         } else {
                             await loadAndRender();
-                            // Show backend summary (saved/skipped info)
                             alert(t || 'Import completed');
                         }
                     }catch(e){

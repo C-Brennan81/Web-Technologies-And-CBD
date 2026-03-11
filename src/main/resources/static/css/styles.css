@@ -284,9 +284,6 @@ body {
 }
 
 .logout-btn{
-    position:absolute;
-    top:20px;
-    right:20px;
     padding:10px 12px;
     border-radius:10px;
     border:1px solid rgba(255,255,255,0.15);
@@ -462,3 +459,48 @@ button:focus-visible, a:focus-visible { outline: 2px dashed var(--focus); outlin
 .btn-outline-neon:hover { background: rgba(0, 242, 255, 0.1); }
 
 .hint { color: rgba(248,250,252,0.7); font-size: 0.9rem; }
+
+/* --- Top right action buttons --- */
+.top-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+}
+
+.top-actions .btn,
+.top-actions .btn-import,
+.top-actions .logout-btn,
+.top-actions button {
+    min-height: 48px;
+    padding: 0 18px !important;
+    border-radius: 14px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: #fff !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+
+.top-actions .btn:hover,
+.top-actions .btn-import:hover,
+.top-actions .logout-btn:hover,
+.top-actions button:hover {
+    background: rgba(0,242,255,0.08) !important;
+    border-color: rgba(0,242,255,0.35) !important;
+}
+
+.top-actions .btn-import {
+    border-color: rgba(0,242,255,0.28) !important;
+}
+
+.top-actions .logout-btn,
+.top-actions #btnLogout {
+    min-width: 92px;
+}
