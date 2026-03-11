@@ -90,6 +90,13 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Selenium for UI tests (headless) -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.17.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

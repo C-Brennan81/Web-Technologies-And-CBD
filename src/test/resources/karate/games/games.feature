@@ -17,7 +17,7 @@ Feature: Games API
     When method post
     Then status 200
     * def token = response.token
-    * configure headers = { Authorization: 'Bearer ' + token }
+    * header Authorization = 'Bearer ' + token
 
   Scenario: Get my games returns list
     Given path 'api', 'games'
