@@ -24,14 +24,14 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
-<span class="nc" id="L27">public class GameService {</span>
+<span class="fc" id="L27">public class GameService {</span>
 
     @Autowired private GameRepository gameRepository;
     @Autowired private LauncherRepository launcherRepository;
     @Autowired private SteamGridDbClient steamGridDbClient;
     @Autowired private UserRepository userRepository;
 
-<span class="nc" id="L34">    private final Random random = new Random();</span>
+<span class="fc" id="L34">    private final Random random = new Random();</span>
 
     // Upload endpoint uses this
     // Upload endpoint uses this
@@ -47,111 +47,111 @@ import java.util.stream.Collectors;
     }
 
     public String importGames(InputStream inputStream, String username, boolean excludeNonFull) throws Exception {
-<span class="nc" id="L50">        int savedCount = 0;</span>
-<span class="nc" id="L51">        int skippedCount = 0;</span>
+<span class="fc" id="L50">        int savedCount = 0;</span>
+<span class="fc" id="L51">        int skippedCount = 0;</span>
 
-<span class="nc" id="L53">        User user = userRepository.findByUsername(username)</span>
-<span class="nc" id="L54">                .orElseThrow(() -&gt; new RuntimeException(&quot;User not found&quot;));</span>
+<span class="fc" id="L53">        User user = userRepository.findByUsername(username)</span>
+<span class="pc" id="L54">                .orElseThrow(() -&gt; new RuntimeException(&quot;User not found&quot;));</span>
 
-<span class="nc" id="L56">        try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {</span>
-<span class="nc" id="L57">            String[] header = reader.readNext(); // header</span>
-<span class="nc bnc" id="L58" title="All 2 branches missed.">            if (header == null) return &quot;Empty CSV&quot;;</span>
+<span class="fc" id="L56">        try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {</span>
+<span class="fc" id="L57">            String[] header = reader.readNext(); // header</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">            if (header == null) return &quot;Empty CSV&quot;;</span>
 
             // Build a normalized header name -&gt; index map (tolerant to variants)
-<span class="nc" id="L61">            java.util.Map&lt;String,Integer&gt; idx = new java.util.HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">            for (int i=0; i&lt;header.length; i++) {</span>
-<span class="nc" id="L63">                String key = normalizeHeader(header[i]);</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">                if (!key.isBlank()) idx.put(key, i);</span>
+<span class="fc" id="L61">            java.util.Map&lt;String,Integer&gt; idx = new java.util.HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">            for (int i=0; i&lt;header.length; i++) {</span>
+<span class="fc" id="L63">                String key = normalizeHeader(header[i]);</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">                if (!key.isBlank()) idx.put(key, i);</span>
             }
 
             // Row loop
             String[] currentLine;
-<span class="nc bnc" id="L69" title="All 2 branches missed.">            while ((currentLine = reader.readNext()) != null) {</span>
-<span class="nc" id="L70">                String title = firstNonNull(</span>
-<span class="nc" id="L71">                        safe(currentLine, idx.getOrDefault(&quot;name&quot;, -1)),</span>
-<span class="nc" id="L72">                        safe(currentLine, idx.getOrDefault(&quot;title&quot;, -1))</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">            while ((currentLine = reader.readNext()) != null) {</span>
+<span class="fc" id="L70">                String title = firstNonNull(</span>
+<span class="fc" id="L71">                        safe(currentLine, idx.getOrDefault(&quot;name&quot;, -1)),</span>
+<span class="fc" id="L72">                        safe(currentLine, idx.getOrDefault(&quot;title&quot;, -1))</span>
                 );
-<span class="nc bnc" id="L74" title="All 4 branches missed.">                if (title == null || title.isBlank()) {</span>
-<span class="nc" id="L75">                    skippedCount++;</span>
-<span class="nc" id="L76">                    continue;</span>
+<span class="pc bpc" id="L74" title="1 of 4 branches missed.">                if (title == null || title.isBlank()) {</span>
+<span class="fc" id="L75">                    skippedCount++;</span>
+<span class="fc" id="L76">                    continue;</span>
                 }
 
-<span class="nc bnc" id="L79" title="All 4 branches missed.">                if (excludeNonFull &amp;&amp; isNonFullRelease(title)) {</span>
-<span class="nc" id="L80">                    skippedCount++;</span>
-<span class="nc" id="L81">                    continue;</span>
+<span class="fc bfc" id="L79" title="All 4 branches covered.">                if (excludeNonFull &amp;&amp; isNonFullRelease(title)) {</span>
+<span class="fc" id="L80">                    skippedCount++;</span>
+<span class="fc" id="L81">                    continue;</span>
                 }
 
-<span class="nc" id="L84">                Game game = new Game();</span>
-<span class="nc" id="L85">                game.setTitle(title.trim());</span>
-<span class="nc" id="L86">                game.setUser(user);</span>
+<span class="fc" id="L84">                Game game = new Game();</span>
+<span class="fc" id="L85">                game.setTitle(title.trim());</span>
+<span class="fc" id="L86">                game.setUser(user);</span>
 
-<span class="nc" id="L88">                String genres = firstNonNull(</span>
-<span class="nc" id="L89">                        safe(currentLine, idx.getOrDefault(&quot;genres&quot;, -1)),</span>
-<span class="nc" id="L90">                        safe(currentLine, idx.getOrDefault(&quot;genre&quot;, -1))</span>
+<span class="fc" id="L88">                String genres = firstNonNull(</span>
+<span class="fc" id="L89">                        safe(currentLine, idx.getOrDefault(&quot;genres&quot;, -1)),</span>
+<span class="fc" id="L90">                        safe(currentLine, idx.getOrDefault(&quot;genre&quot;, -1))</span>
                 );
-<span class="nc" id="L92">                game.setGenres(genres);</span>
-<span class="nc" id="L93">                game.setGenre(firstGenre(genres));</span>
+<span class="fc" id="L92">                game.setGenres(genres);</span>
+<span class="fc" id="L93">                game.setGenre(firstGenre(genres));</span>
 
-<span class="nc" id="L95">                String completionRaw = firstNonNull(</span>
-<span class="nc" id="L96">                        safe(currentLine, idx.getOrDefault(&quot;completionstatus&quot;, -1)),</span>
-<span class="nc" id="L97">                        safe(currentLine, idx.getOrDefault(&quot;status&quot;, -1))</span>
+<span class="fc" id="L95">                String completionRaw = firstNonNull(</span>
+<span class="fc" id="L96">                        safe(currentLine, idx.getOrDefault(&quot;completionstatus&quot;, -1)),</span>
+<span class="fc" id="L97">                        safe(currentLine, idx.getOrDefault(&quot;status&quot;, -1))</span>
                 );
-<span class="nc" id="L99">                String completion = normalizeCompletionStatus(completionRaw);</span>
-<span class="nc" id="L100">                game.setCompletionStatus(completion);</span>
-<span class="nc" id="L101">                game.setStatus(completion);</span>
+<span class="fc" id="L99">                String completion = normalizeCompletionStatus(completionRaw);</span>
+<span class="fc" id="L100">                game.setCompletionStatus(completion);</span>
+<span class="fc" id="L101">                game.setStatus(completion);</span>
 
                 // Time Played: assume seconds if large; attempt parse as integer
-<span class="nc" id="L104">                Integer timeVal = parseIntSafe(firstNonNull(</span>
-<span class="nc" id="L105">                        safe(currentLine, idx.getOrDefault(&quot;timeplayed&quot;, -1)),</span>
-<span class="nc" id="L106">                        safe(currentLine, idx.getOrDefault(&quot;playtime&quot;, -1))</span>
+<span class="fc" id="L104">                Integer timeVal = parseIntSafe(firstNonNull(</span>
+<span class="fc" id="L105">                        safe(currentLine, idx.getOrDefault(&quot;timeplayed&quot;, -1)),</span>
+<span class="fc" id="L106">                        safe(currentLine, idx.getOrDefault(&quot;playtime&quot;, -1))</span>
                 ));
-<span class="nc" id="L108">                game.setTimePlayed(timeVal);</span>
+<span class="fc" id="L108">                game.setTimePlayed(timeVal);</span>
 
-<span class="nc" id="L110">                String sourceRaw = firstNonNull(</span>
-<span class="nc" id="L111">                        safe(currentLine, idx.getOrDefault(&quot;sources&quot;, -1)),</span>
-<span class="nc" id="L112">                        safe(currentLine, idx.getOrDefault(&quot;source&quot;, -1)),</span>
-<span class="nc" id="L113">                        safe(currentLine, idx.getOrDefault(&quot;launcher&quot;, -1)),</span>
-<span class="nc" id="L114">                        safe(currentLine, idx.getOrDefault(&quot;platform&quot;, -1))</span>
+<span class="fc" id="L110">                String sourceRaw = firstNonNull(</span>
+<span class="fc" id="L111">                        safe(currentLine, idx.getOrDefault(&quot;sources&quot;, -1)),</span>
+<span class="fc" id="L112">                        safe(currentLine, idx.getOrDefault(&quot;source&quot;, -1)),</span>
+<span class="fc" id="L113">                        safe(currentLine, idx.getOrDefault(&quot;launcher&quot;, -1)),</span>
+<span class="fc" id="L114">                        safe(currentLine, idx.getOrDefault(&quot;platform&quot;, -1))</span>
                 );
-<span class="nc bnc" id="L116" title="All 4 branches missed.">                if (sourceRaw == null || sourceRaw.isBlank()) {</span>
-<span class="nc" id="L117">                    skippedCount++;</span>
-<span class="nc" id="L118">                    continue;</span>
+<span class="pc bpc" id="L116" title="1 of 4 branches missed.">                if (sourceRaw == null || sourceRaw.isBlank()) {</span>
+<span class="fc" id="L117">                    skippedCount++;</span>
+<span class="fc" id="L118">                    continue;</span>
                 }
-<span class="nc" id="L120">                String normalizedLauncherName = normalizeLauncherName(sourceRaw);</span>
+<span class="fc" id="L120">                String normalizedLauncherName = normalizeLauncherName(sourceRaw);</span>
 
                 // Resolve or create launcher (case-insensitive)
-<span class="nc" id="L123">                Optional&lt;Launcher&gt; launcherOpt = launcherRepository.findByNameIgnoreCase(normalizedLauncherName);</span>
-<span class="nc" id="L124">                Launcher launcher = launcherOpt.orElseGet(() -&gt; {</span>
-<span class="nc" id="L125">                    Launcher l = new Launcher();</span>
-<span class="nc" id="L126">                    l.setName(normalizedLauncherName);</span>
-<span class="nc" id="L127">                    return launcherRepository.save(l);</span>
+<span class="fc" id="L123">                Optional&lt;Launcher&gt; launcherOpt = launcherRepository.findByNameIgnoreCase(normalizedLauncherName);</span>
+<span class="fc" id="L124">                Launcher launcher = launcherOpt.orElseGet(() -&gt; {</span>
+<span class="fc" id="L125">                    Launcher l = new Launcher();</span>
+<span class="fc" id="L126">                    l.setName(normalizedLauncherName);</span>
+<span class="fc" id="L127">                    return launcherRepository.save(l);</span>
                 });
-<span class="nc" id="L129">                game.setLauncher(launcher);</span>
+<span class="fc" id="L129">                game.setLauncher(launcher);</span>
 
-<span class="nc" id="L131">                double price = 5.0 + (55.0 * random.nextDouble());</span>
-<span class="nc" id="L132">                game.setPurchasePrice(Math.round(price * 100.0) / 100.0);</span>
+<span class="fc" id="L131">                double price = 5.0 + (55.0 * random.nextDouble());</span>
+<span class="fc" id="L132">                game.setPurchasePrice(Math.round(price * 100.0) / 100.0);</span>
 
-<span class="nc" id="L134">                game.setAgeRating(firstNonNull(</span>
-<span class="nc" id="L135">                        safe(currentLine, idx.getOrDefault(&quot;agerating&quot;, -1)),</span>
-<span class="nc" id="L136">                        safe(currentLine, idx.getOrDefault(&quot;age&quot;, -1))</span>
+<span class="fc" id="L134">                game.setAgeRating(firstNonNull(</span>
+<span class="fc" id="L135">                        safe(currentLine, idx.getOrDefault(&quot;agerating&quot;, -1)),</span>
+<span class="fc" id="L136">                        safe(currentLine, idx.getOrDefault(&quot;age&quot;, -1))</span>
                 ));
-<span class="nc" id="L138">                game.setDevelopers(safe(currentLine, idx.getOrDefault(&quot;developers&quot;, -1)));</span>
-<span class="nc" id="L139">                game.setPublishers(safe(currentLine, idx.getOrDefault(&quot;publishers&quot;, -1)));</span>
-<span class="nc" id="L140">                game.setCommunityScore(parseDoubleSafe(safe(currentLine, idx.getOrDefault(&quot;communityscore&quot;, -1))));</span>
+<span class="fc" id="L138">                game.setDevelopers(safe(currentLine, idx.getOrDefault(&quot;developers&quot;, -1)));</span>
+<span class="fc" id="L139">                game.setPublishers(safe(currentLine, idx.getOrDefault(&quot;publishers&quot;, -1)));</span>
+<span class="fc" id="L140">                game.setCommunityScore(parseDoubleSafe(safe(currentLine, idx.getOrDefault(&quot;communityscore&quot;, -1))));</span>
 
-<span class="nc bnc" id="L142" title="All 2 branches missed.">                if (gameRepository.existsByUserUsernameAndTitleAndLauncher_Name(</span>
-<span class="nc" id="L143">                        username, game.getTitle(), game.getLauncher().getName()</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">                if (gameRepository.existsByUserUsernameAndTitleAndLauncher_Name(</span>
+<span class="fc" id="L143">                        username, game.getTitle(), game.getLauncher().getName()</span>
                 )) {
-<span class="nc" id="L145">                    skippedCount++;</span>
-<span class="nc" id="L146">                    continue;</span>
+<span class="fc" id="L145">                    skippedCount++;</span>
+<span class="fc" id="L146">                    continue;</span>
                 }
 
-<span class="nc" id="L149">                gameRepository.save(game);</span>
-<span class="nc" id="L150">                savedCount++;</span>
-<span class="nc" id="L151">            }</span>
+<span class="fc" id="L149">                gameRepository.save(game);</span>
+<span class="fc" id="L150">                savedCount++;</span>
+<span class="fc" id="L151">            }</span>
 <span class="nc" id="L152">        }</span>
 
-<span class="nc" id="L154">        return &quot;Import complete! Successfully saved &quot; + savedCount + &quot; games. Skipped &quot; + skippedCount + &quot; rows.&quot;;</span>
+<span class="fc" id="L154">        return &quot;Import complete! Successfully saved &quot; + savedCount + &quot; games. Skipped &quot; + skippedCount + &quot; rows.&quot;;</span>
     }
 
     public String importGames(InputStream inputStream, String username) throws Exception {
@@ -167,47 +167,47 @@ import java.util.stream.Collectors;
     }
 
     public List&lt;GameDTO&gt; getMyGames(String username) {
-<span class="nc" id="L170">        return gameRepository.findByUserUsername(username)</span>
-<span class="nc" id="L171">                .stream()</span>
-<span class="nc" id="L172">                .map(g -&gt; {</span>
-<span class="nc bnc" id="L173" title="All 2 branches missed.">                    String platform = (g.getLauncher() != null) ? g.getLauncher().getName() : null;</span>
-<span class="nc bnc" id="L174" title="All 2 branches missed.">                    Double hours = (g.getTimePlayed() == null) ? null : (g.getTimePlayed() / 3600.0);</span>
+<span class="fc" id="L170">        return gameRepository.findByUserUsername(username)</span>
+<span class="fc" id="L171">                .stream()</span>
+<span class="fc" id="L172">                .map(g -&gt; {</span>
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">                    String platform = (g.getLauncher() != null) ? g.getLauncher().getName() : null;</span>
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">                    Double hours = (g.getTimePlayed() == null) ? null : (g.getTimePlayed() / 3600.0);</span>
 
-<span class="nc" id="L176">                    GameDTO dto = new GameDTO(</span>
-<span class="nc" id="L177">                            g.getId(),</span>
-<span class="nc" id="L178">                            g.getTitle(),</span>
+<span class="fc" id="L176">                    GameDTO dto = new GameDTO(</span>
+<span class="fc" id="L177">                            g.getId(),</span>
+<span class="fc" id="L178">                            g.getTitle(),</span>
                             platform,
                             hours,
-<span class="nc" id="L181">                            g.getCompletionStatus(),</span>
-<span class="nc" id="L182">                            g.getPurchasePrice(),</span>
-<span class="nc" id="L183">                            g.getGenre()</span>
+<span class="fc" id="L181">                            g.getCompletionStatus(),</span>
+<span class="fc" id="L182">                            g.getPurchasePrice(),</span>
+<span class="fc" id="L183">                            g.getGenre()</span>
                     );
 
-<span class="nc" id="L186">                    dto.setCoverUrl(g.getCoverUrl());</span>
-<span class="nc" id="L187">                    return dto;</span>
+<span class="fc" id="L186">                    dto.setCoverUrl(g.getCoverUrl());</span>
+<span class="fc" id="L187">                    return dto;</span>
                 })
-<span class="nc" id="L189">                .collect(Collectors.toList());</span>
+<span class="fc" id="L189">                .collect(Collectors.toList());</span>
     }
 
 
 
 
     private static String safe(String[] line, int index) {
-<span class="nc bnc" id="L196" title="All 6 branches missed.">        if (line == null || index &lt; 0 || index &gt;= line.length) return null;</span>
-<span class="nc" id="L197">        String v = line[index];</span>
-<span class="nc bnc" id="L198" title="All 4 branches missed.">        return (v == null || v.isBlank()) ? null : v.trim();</span>
+<span class="pc bpc" id="L196" title="2 of 6 branches missed.">        if (line == null || index &lt; 0 || index &gt;= line.length) return null;</span>
+<span class="fc" id="L197">        String v = line[index];</span>
+<span class="pc bpc" id="L198" title="1 of 4 branches missed.">        return (v == null || v.isBlank()) ? null : v.trim();</span>
     }
 
     private static String firstGenre(String genres) {
-<span class="nc bnc" id="L202" title="All 4 branches missed.">        if (genres == null || genres.isBlank()) return null;</span>
-<span class="nc" id="L203">        String[] parts = genres.split(&quot;,&quot;);</span>
-<span class="nc bnc" id="L204" title="All 2 branches missed.">        return parts.length &gt; 0 ? parts[0].trim() : genres.trim();</span>
+<span class="pc bpc" id="L202" title="1 of 4 branches missed.">        if (genres == null || genres.isBlank()) return null;</span>
+<span class="fc" id="L203">        String[] parts = genres.split(&quot;,&quot;);</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">        return parts.length &gt; 0 ? parts[0].trim() : genres.trim();</span>
     }
 
     private static Integer parseIntSafe(String v) {
         try {
-<span class="nc bnc" id="L209" title="All 4 branches missed.">            if (v == null || v.isBlank()) return null;</span>
-<span class="nc" id="L210">            return Integer.parseInt(v.trim());</span>
+<span class="pc bpc" id="L209" title="1 of 4 branches missed.">            if (v == null || v.isBlank()) return null;</span>
+<span class="fc" id="L210">            return Integer.parseInt(v.trim());</span>
 <span class="nc" id="L211">        } catch (Exception e) {</span>
 <span class="nc" id="L212">            return null;</span>
         }
@@ -215,8 +215,8 @@ import java.util.stream.Collectors;
 
     private static Double parseDoubleSafe(String v) {
         try {
-<span class="nc bnc" id="L218" title="All 4 branches missed.">            if (v == null || v.isBlank()) return null;</span>
-<span class="nc" id="L219">            return Double.parseDouble(v.trim());</span>
+<span class="pc bpc" id="L218" title="1 of 4 branches missed.">            if (v == null || v.isBlank()) return null;</span>
+<span class="fc" id="L219">            return Double.parseDouble(v.trim());</span>
 <span class="nc" id="L220">        } catch (Exception e) {</span>
 <span class="nc" id="L221">            return null;</span>
         }
@@ -224,83 +224,83 @@ import java.util.stream.Collectors;
 
     //Helpers
     public long countGamesForUser(String username) {
-<span class="nc" id="L227">        return gameRepository.findByUserUsername(username).size();</span>
+<span class="fc" id="L227">        return gameRepository.findByUserUsername(username).size();</span>
     }
 
     private static boolean isNonFullRelease(String title) {
-<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (title == null) return false;</span>
-<span class="nc" id="L232">        String t = normalizeTitle(title);</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">        if (title == null) return false;</span>
+<span class="fc" id="L232">        String t = normalizeTitle(title);</span>
 
         // keep these simple and obvious for marking
-<span class="nc bnc" id="L235" title="All 2 branches missed.">        return t.contains(&quot; demo&quot;)</span>
-<span class="nc bnc" id="L236" title="All 2 branches missed.">                || t.contains(&quot; beta&quot;)</span>
-<span class="nc bnc" id="L237" title="All 2 branches missed.">                || t.contains(&quot; playtest&quot;)</span>
-<span class="nc bnc" id="L238" title="All 2 branches missed.">                || t.contains(&quot; alpha&quot;)</span>
-<span class="nc bnc" id="L239" title="All 2 branches missed.">                || t.contains(&quot; trial&quot;);</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">        return t.contains(&quot; demo&quot;)</span>
+<span class="fc bfc" id="L236" title="All 2 branches covered.">                || t.contains(&quot; beta&quot;)</span>
+<span class="fc bfc" id="L237" title="All 2 branches covered.">                || t.contains(&quot; playtest&quot;)</span>
+<span class="fc bfc" id="L238" title="All 2 branches covered.">                || t.contains(&quot; alpha&quot;)</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">                || t.contains(&quot; trial&quot;);</span>
     }
 
     private static String normalizeTitle(String title) {
-<span class="nc" id="L243">        String t = title.toLowerCase();</span>
+<span class="fc" id="L243">        String t = title.toLowerCase();</span>
 
         // replace non-alphanumeric with spaces
-<span class="nc" id="L246">        t = t.replaceAll(&quot;[^a-z0-9]+&quot;, &quot; &quot;);</span>
+<span class="fc" id="L246">        t = t.replaceAll(&quot;[^a-z0-9]+&quot;, &quot; &quot;);</span>
 
         // collapse multiple spaces
-<span class="nc" id="L249">        t = t.replaceAll(&quot;\\s+&quot;, &quot; &quot;).trim();</span>
+<span class="fc" id="L249">        t = t.replaceAll(&quot;\\s+&quot;, &quot; &quot;).trim();</span>
 
         // pad with spaces so &quot;demo&quot; matches cleanly with contains(&quot; demo&quot;)
-<span class="nc" id="L252">        return &quot; &quot; + t + &quot; &quot;;</span>
+<span class="fc" id="L252">        return &quot; &quot; + t + &quot; &quot;;</span>
     }
 
     public Optional&lt;String&gt; getOrFetchCoverForUser(Long id, String username) {
-<span class="nc" id="L256">        return gameRepository.findByIdAndUserUsername(id, username).map(g -&gt; {</span>
-<span class="nc" id="L257">            String coverUrl = g.getCoverUrl();</span>
-<span class="nc bnc" id="L258" title="All 4 branches missed.">            if (coverUrl == null || coverUrl.isBlank()) {</span>
-<span class="nc" id="L259">                String found = steamGridDbClient.findCoverUrlByName(g.getTitle());</span>
-<span class="nc bnc" id="L260" title="All 4 branches missed.">                if (found != null &amp;&amp; !found.isBlank()) {</span>
-<span class="nc" id="L261">                    g.setCoverUrl(found);</span>
-<span class="nc" id="L262">                    gameRepository.save(g);</span>
-<span class="nc" id="L263">                    coverUrl = found;</span>
+<span class="fc" id="L256">        return gameRepository.findByIdAndUserUsername(id, username).map(g -&gt; {</span>
+<span class="fc" id="L257">            String coverUrl = g.getCoverUrl();</span>
+<span class="pc bpc" id="L258" title="1 of 4 branches missed.">            if (coverUrl == null || coverUrl.isBlank()) {</span>
+<span class="fc" id="L259">                String found = steamGridDbClient.findCoverUrlByName(g.getTitle());</span>
+<span class="pc bpc" id="L260" title="2 of 4 branches missed.">                if (found != null &amp;&amp; !found.isBlank()) {</span>
+<span class="fc" id="L261">                    g.setCoverUrl(found);</span>
+<span class="fc" id="L262">                    gameRepository.save(g);</span>
+<span class="fc" id="L263">                    coverUrl = found;</span>
                 }
             }
-<span class="nc" id="L266">            return coverUrl;</span>
+<span class="fc" id="L266">            return coverUrl;</span>
         });
     }
 
     // ---- Helpers for tolerant CSV parsing ----
     private static String normalizeHeader(String h) {
-<span class="nc bnc" id="L272" title="All 2 branches missed.">        if (h == null) return &quot;&quot;;</span>
-<span class="nc" id="L273">        String k = h.toLowerCase();</span>
+<span class="pc bpc" id="L272" title="1 of 2 branches missed.">        if (h == null) return &quot;&quot;;</span>
+<span class="fc" id="L273">        String k = h.toLowerCase();</span>
         // remove non-alphanumeric characters
-<span class="nc" id="L275">        k = k.replaceAll(&quot;[^a-z0-9]+&quot;, &quot;&quot;);</span>
-<span class="nc" id="L276">        return k.trim();</span>
+<span class="fc" id="L275">        k = k.replaceAll(&quot;[^a-z0-9]+&quot;, &quot;&quot;);</span>
+<span class="fc" id="L276">        return k.trim();</span>
     }
 
     private static String firstNonNull(String... vals) {
-<span class="nc bnc" id="L280" title="All 2 branches missed.">        if (vals == null) return null;</span>
-<span class="nc bnc" id="L281" title="All 2 branches missed.">        for (String v : vals) {</span>
-<span class="nc bnc" id="L282" title="All 4 branches missed.">            if (v != null &amp;&amp; !v.isBlank()) return v;</span>
+<span class="pc bpc" id="L280" title="1 of 2 branches missed.">        if (vals == null) return null;</span>
+<span class="fc bfc" id="L281" title="All 2 branches covered.">        for (String v : vals) {</span>
+<span class="pc bpc" id="L282" title="1 of 4 branches missed.">            if (v != null &amp;&amp; !v.isBlank()) return v;</span>
         }
-<span class="nc" id="L284">        return null;</span>
+<span class="fc" id="L284">        return null;</span>
     }
 
     private static String normalizeCompletionStatus(String status) {
-<span class="nc bnc" id="L288" title="All 4 branches missed.">        if (status == null || status.isBlank()) return &quot;NOT PLAYED&quot;;</span>
-<span class="nc" id="L289">        String s = status.trim().toUpperCase();</span>
-<span class="nc bnc" id="L290" title="All 4 branches missed.">        if (s.contains(&quot;NOT&quot;) &amp;&amp; s.contains(&quot;PLAYED&quot;)) return &quot;NOT PLAYED&quot;;</span>
-<span class="nc bnc" id="L291" title="All 4 branches missed.">        if (s.contains(&quot;PLAYED&quot;) &amp;&amp; !s.contains(&quot;NOT&quot;)) return &quot;PLAYED&quot;;</span>
-<span class="nc bnc" id="L292" title="All 2 branches missed.">        if (s.contains(&quot;COMPLETE&quot;)) return &quot;COMPLETED&quot;;</span>
-<span class="nc" id="L293">        return s;</span>
+<span class="pc bpc" id="L288" title="2 of 4 branches missed.">        if (status == null || status.isBlank()) return &quot;NOT PLAYED&quot;;</span>
+<span class="fc" id="L289">        String s = status.trim().toUpperCase();</span>
+<span class="pc bpc" id="L290" title="1 of 4 branches missed.">        if (s.contains(&quot;NOT&quot;) &amp;&amp; s.contains(&quot;PLAYED&quot;)) return &quot;NOT PLAYED&quot;;</span>
+<span class="pc bpc" id="L291" title="1 of 4 branches missed.">        if (s.contains(&quot;PLAYED&quot;) &amp;&amp; !s.contains(&quot;NOT&quot;)) return &quot;PLAYED&quot;;</span>
+<span class="fc bfc" id="L292" title="All 2 branches covered.">        if (s.contains(&quot;COMPLETE&quot;)) return &quot;COMPLETED&quot;;</span>
+<span class="fc" id="L293">        return s;</span>
     }
 
     private static String normalizeLauncherName(String name) {
-<span class="nc bnc" id="L297" title="All 2 branches missed.">        if (name == null) return null;</span>
-<span class="nc" id="L298">        String n = name.trim();</span>
+<span class="pc bpc" id="L297" title="1 of 2 branches missed.">        if (name == null) return null;</span>
+<span class="fc" id="L298">        String n = name.trim();</span>
         // Common aliases mapping
-<span class="nc bnc" id="L300" title="All 2 branches missed.">        if (n.equalsIgnoreCase(&quot;Ubisoft Connect&quot;)) return &quot;Ubisoft&quot;;</span>
-<span class="nc bnc" id="L301" title="All 4 branches missed.">        if (n.equalsIgnoreCase(&quot;EA App&quot;) || n.equalsIgnoreCase(&quot;Origin&quot;)) return &quot;EA&quot;;</span>
-<span class="nc bnc" id="L302" title="All 4 branches missed.">        if (n.equalsIgnoreCase(&quot;Microsoft Store&quot;) || n.equalsIgnoreCase(&quot;Xbox&quot;)) return &quot;Xbox&quot;;</span>
-<span class="nc" id="L303">        return n;</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">        if (n.equalsIgnoreCase(&quot;Ubisoft Connect&quot;)) return &quot;Ubisoft&quot;;</span>
+<span class="fc bfc" id="L301" title="All 4 branches covered.">        if (n.equalsIgnoreCase(&quot;EA App&quot;) || n.equalsIgnoreCase(&quot;Origin&quot;)) return &quot;EA&quot;;</span>
+<span class="pc bpc" id="L302" title="1 of 4 branches missed.">        if (n.equalsIgnoreCase(&quot;Microsoft Store&quot;) || n.equalsIgnoreCase(&quot;Xbox&quot;)) return &quot;Xbox&quot;;</span>
+<span class="fc" id="L303">        return n;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

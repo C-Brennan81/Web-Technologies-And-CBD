@@ -8,8 +8,8 @@ import java.util.List;
 
 @Entity
 @Table(name = &quot;users&quot;)
-<span class="nc bnc" id="L11" title="All 50 branches missed.">@Data</span>
-<span class="nc" id="L12">@NoArgsConstructor</span>
+<span class="pc bnc" id="L11" title="All 50 branches missed.">@Data</span>
+<span class="fc" id="L12">@NoArgsConstructor</span>
 <span class="nc" id="L13">@AllArgsConstructor</span>
 public class User {
 
@@ -18,15 +18,15 @@ public class User {
 <span class="nc" id="L18">    private Long id;</span>
 
     @Column(unique = true, nullable = false)
-<span class="nc" id="L21">    private String username;</span>
+<span class="fc" id="L21">    private String username;</span>
 
     @Column(nullable = false)
-<span class="nc" id="L24">    private String password;</span>
+<span class="fc" id="L24">    private String password;</span>
 
-<span class="nc" id="L26">    private String role; // e.g., &quot;ROLE_USER&quot; or &quot;ROLE_ADMIN&quot;</span>
+<span class="fc" id="L26">    private String role; // e.g., &quot;ROLE_USER&quot; or &quot;ROLE_ADMIN&quot;</span>
 
-<span class="nc" id="L28">    @Column(nullable = false)</span>
-<span class="nc" id="L29">    private boolean enabled = true;</span>
+<span class="pc" id="L28">    @Column(nullable = false)</span>
+<span class="fc" id="L29">    private boolean enabled = true;</span>
 
     // One user can have many games (Inverse side of the relationship)
     @OneToMany(mappedBy = &quot;user&quot;, cascade = CascadeType.ALL, orphanRemoval = true)

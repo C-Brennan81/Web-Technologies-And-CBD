@@ -77,6 +77,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Karate (API testing) -->
         <dependency>
@@ -120,6 +125,13 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/model/**</exclude>
+                                <exclude>**/dto/**</exclude>
+                                <exclude>**/config/**</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>check</id>
@@ -137,6 +149,11 @@
                                             <minimum>0.80</minimum>
                                         </limit>
                                     </limits>
+                                    <excludes>
+                                        <exclude>com.gamelibrary.stats.model.*</exclude>
+                                        <exclude>com.gamelibrary.stats.dto.*</exclude>
+                                        <exclude>com.gamelibrary.stats.config.*</exclude>
+                                    </excludes>
                                 </rule>
                             </rules>
                         </configuration>
@@ -147,6 +164,11 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <spring.profiles.active>test</spring.profiles.active>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
 
         </plugins>

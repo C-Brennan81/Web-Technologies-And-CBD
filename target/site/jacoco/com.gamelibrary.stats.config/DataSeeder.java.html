@@ -24,34 +24,34 @@ public class DataSeeder implements CommandLineRunner {
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             GameService gameService
-<span class="nc" id="L27">    ) {</span>
-<span class="nc" id="L28">        this.launcherRepository = launcherRepository;</span>
-<span class="nc" id="L29">        this.userRepository = userRepository;</span>
-<span class="nc" id="L30">        this.passwordEncoder = passwordEncoder;</span>
-<span class="nc" id="L31">        this.gameService = gameService;</span>
-<span class="nc" id="L32">    }</span>
+<span class="fc" id="L27">    ) {</span>
+<span class="fc" id="L28">        this.launcherRepository = launcherRepository;</span>
+<span class="fc" id="L29">        this.userRepository = userRepository;</span>
+<span class="fc" id="L30">        this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L31">        this.gameService = gameService;</span>
+<span class="fc" id="L32">    }</span>
 
     @Override
     public void run(String... args) throws Exception {
 
         // 1) Seed launchers
-<span class="nc bnc" id="L38" title="All 2 branches missed.">        if (launcherRepository.count() == 0) {</span>
-<span class="nc" id="L39">            Arrays.asList(&quot;Steam&quot;, &quot;Epic&quot;, &quot;Xbox&quot;, &quot;GOG&quot;, &quot;Ubisoft&quot;).forEach(name -&gt; {</span>
-<span class="nc" id="L40">                Launcher l = new Launcher();</span>
-<span class="nc" id="L41">                l.setName(name);</span>
-<span class="nc" id="L42">                launcherRepository.save(l);</span>
-<span class="nc" id="L43">            });</span>
-<span class="nc" id="L44">            System.out.println(&quot;Database seeded with default PC Launchers.&quot;);</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        if (launcherRepository.count() == 0) {</span>
+<span class="fc" id="L39">            Arrays.asList(&quot;Steam&quot;, &quot;Epic&quot;, &quot;Xbox&quot;, &quot;GOG&quot;, &quot;Ubisoft&quot;).forEach(name -&gt; {</span>
+<span class="fc" id="L40">                Launcher l = new Launcher();</span>
+<span class="fc" id="L41">                l.setName(name);</span>
+<span class="fc" id="L42">                launcherRepository.save(l);</span>
+<span class="fc" id="L43">            });</span>
+<span class="fc" id="L44">            System.out.println(&quot;Database seeded with default PC Launchers.&quot;);</span>
         }
 
         // 2) Seed a demo admin user (only if missing)
-<span class="nc" id="L48">        String demoUsername = &quot;admin&quot;;</span>
-<span class="nc" id="L49">        User demo = userRepository.findByUsername(demoUsername).orElseGet(() -&gt; {</span>
-<span class="nc" id="L50">            User u = new User();</span>
-<span class="nc" id="L51">            u.setUsername(demoUsername);</span>
-<span class="nc" id="L52">            u.setPassword(passwordEncoder.encode(&quot;admin&quot;));</span>
-<span class="nc" id="L53">            u.setRole(&quot;ROLE_ADMIN&quot;);</span>
-<span class="nc" id="L54">            return userRepository.save(u);</span>
+<span class="fc" id="L48">        String demoUsername = &quot;admin&quot;;</span>
+<span class="fc" id="L49">        User demo = userRepository.findByUsername(demoUsername).orElseGet(() -&gt; {</span>
+<span class="fc" id="L50">            User u = new User();</span>
+<span class="fc" id="L51">            u.setUsername(demoUsername);</span>
+<span class="fc" id="L52">            u.setPassword(passwordEncoder.encode(&quot;admin&quot;));</span>
+<span class="fc" id="L53">            u.setRole(&quot;ROLE_ADMIN&quot;);</span>
+<span class="fc" id="L54">            return userRepository.save(u);</span>
         });
 
 //        // 3) Seed sample games ONLY if demo user has none
@@ -61,6 +61,6 @@ public class DataSeeder implements CommandLineRunner {
 //        } else {
 //            System.out.println(&quot;Demo user already has games. Skipping CSV seed.&quot;);
 //        }
-<span class="nc" id="L64">    }</span>
+<span class="fc" id="L64">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

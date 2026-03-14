@@ -337,7 +337,7 @@
         if (usersTable && !usersTable.dataset.bound){
             usersTable.dataset.bound = '1';
             renderUsersTable().catch(e=>console.error(e));
-        } else if (usersTable){
+            } else if (usersTable){
             // even if already bound, refresh data on each bind attempt
             renderUsersTable().catch(e=>console.error(e));
         }
@@ -420,7 +420,7 @@
 
             const pct = list.length ? Math.round(completionTotal / list.length) : 0;
 
-            if (totalValueEl) totalValueEl.textContent = total.toFixed(2);
+            if (totalValueEl) totalValueEl.textContent = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             if (completionEl) completionEl.textContent = pct + '%';
         }
 

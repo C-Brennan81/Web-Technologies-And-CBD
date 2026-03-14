@@ -6,12 +6,14 @@ import com.gamelibrary.stats.repository.LauncherRepository;
 import com.gamelibrary.stats.repository.UserRepository;
 import com.gamelibrary.stats.service.GameService;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
 @Component
+@Profile("!test")
 public class DataSeeder implements CommandLineRunner {
 
     private final LauncherRepository launcherRepository;

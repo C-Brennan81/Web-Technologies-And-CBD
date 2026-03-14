@@ -14,25 +14,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableMethodSecurity
-<span class="nc" id="L17">public class SecurityConfig {</span>
+<span class="fc" id="L17">public class SecurityConfig {</span>
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-<span class="nc" id="L21">        return new BCryptPasswordEncoder();</span>
+<span class="fc" id="L21">        return new BCryptPasswordEncoder();</span>
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
-<span class="nc" id="L26">        return cfg.getAuthenticationManager();</span>
+<span class="fc" id="L26">        return cfg.getAuthenticationManager();</span>
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
-<span class="nc" id="L31">        http</span>
-<span class="nc" id="L32">                .csrf(csrf -&gt; csrf.disable())</span>
-<span class="nc" id="L33">                .sessionManagement(sm -&gt; sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</span>
-<span class="nc" id="L34">                .authorizeHttpRequests(auth -&gt; auth</span>
-<span class="nc" id="L35">                        .requestMatchers(</span>
+<span class="fc" id="L31">        http</span>
+<span class="fc" id="L32">                .csrf(csrf -&gt; csrf.disable())</span>
+<span class="fc" id="L33">                .sessionManagement(sm -&gt; sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</span>
+<span class="fc" id="L34">                .authorizeHttpRequests(auth -&gt; auth</span>
+<span class="fc" id="L35">                        .requestMatchers(</span>
                                 &quot;/api/auth/**&quot;,
                                 &quot;/&quot;,
                                 &quot;/index.html&quot;,
@@ -41,15 +41,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
                                 &quot;/views/**&quot;,
                                 &quot;/csv/**&quot;,
                                 &quot;/favicon.ico&quot;
-<span class="nc" id="L44">                        ).permitAll()</span>
-<span class="nc" id="L45">                        .requestMatchers(&quot;/api/admin/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
-<span class="nc" id="L46">                        .requestMatchers(&quot;/api/launchers/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
-<span class="nc" id="L47">                        .requestMatchers(&quot;/api/games/**&quot;).hasAnyRole(&quot;USER&quot;, &quot;ADMIN&quot;)</span>
-<span class="nc" id="L48">                        .anyRequest().authenticated()</span>
+<span class="fc" id="L44">                        ).permitAll()</span>
+<span class="fc" id="L45">                        .requestMatchers(&quot;/api/admin/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
+<span class="fc" id="L46">                        .requestMatchers(&quot;/api/launchers/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
+<span class="fc" id="L47">                        .requestMatchers(&quot;/api/games/**&quot;).hasAnyRole(&quot;USER&quot;, &quot;ADMIN&quot;)</span>
+<span class="fc" id="L48">                        .anyRequest().authenticated()</span>
                 )
-<span class="nc" id="L50">                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);</span>
+<span class="fc" id="L50">                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);</span>
 
-<span class="nc" id="L52">        return http.build();</span>
+<span class="fc" id="L52">        return http.build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
