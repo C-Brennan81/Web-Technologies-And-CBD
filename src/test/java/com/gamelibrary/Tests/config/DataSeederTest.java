@@ -60,24 +60,6 @@ class DataSeederTest {
     }
 
     @Test
-    @DisplayName("run does not reseed admin when already present")
-    void run_does_not_seed_admin_when_existing() throws Exception {
-        when(launcherRepository.count()).thenReturn(1L);
-
-        User existing = new User();
-        existing.setUsername("admin");
-        existing.setPassword("OLD_PASSWORD");
-        existing.setRole("ROLE_USER");
-
-        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(existing));
-
-        dataSeeder.run();
-
-        verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, never()).save(any(User.class));
-    }
-
-    @Test
     @DisplayName("run seeds admin when missing")
     void run_seeds_admin_when_missing() throws Exception {
         when(launcherRepository.count()).thenReturn(1L);
@@ -97,7 +79,7 @@ class DataSeederTest {
     }
 
     @Test
-    @DisplayName("run updates existing admin user")
+    @DisplayName("run updates existing admin when present")
     void run_updates_existing_admin_when_present() throws Exception {
         when(launcherRepository.count()).thenReturn(1L);
 
@@ -111,7 +93,9 @@ class DataSeederTest {
 
         dataSeeder.run();
 
+        verify(passwordEncoder).encode("admin");
         verify(userRepository).save(existing);
+
         assertEquals("admin", existing.getUsername());
         assertEquals("ENC_ADMIN", existing.getPassword());
         assertEquals("ROLE_ADMIN", existing.getRole());
