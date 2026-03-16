@@ -21,44 +21,44 @@ public class AuthController {
     public AuthController(UserRepository userRepo,
                           PasswordEncoder encoder,
                           AuthenticationManager authManager,
-<span class="nc" id="L24">                          JwtService jwtService) {</span>
-<span class="nc" id="L25">        this.userRepo = userRepo;</span>
-<span class="nc" id="L26">        this.encoder = encoder;</span>
-<span class="nc" id="L27">        this.authManager = authManager;</span>
-<span class="nc" id="L28">        this.jwtService = jwtService;</span>
-<span class="nc" id="L29">    }</span>
+<span class="fc" id="L24">                          JwtService jwtService) {</span>
+<span class="fc" id="L25">        this.userRepo = userRepo;</span>
+<span class="fc" id="L26">        this.encoder = encoder;</span>
+<span class="fc" id="L27">        this.authManager = authManager;</span>
+<span class="fc" id="L28">        this.jwtService = jwtService;</span>
+<span class="fc" id="L29">    }</span>
 
     @PostMapping(&quot;/register&quot;)
     public ResponseEntity&lt;?&gt; register(@RequestBody RegisterRequest req) {
-<span class="nc bnc" id="L33" title="All 8 branches missed.">        if (req.username == null || req.username.isBlank() || req.password == null || req.password.isBlank()) {</span>
-<span class="nc" id="L34">            return ResponseEntity.badRequest().body(&quot;Username and password are required&quot;);</span>
+<span class="pc bpc" id="L33" title="3 of 8 branches missed.">        if (req.username == null || req.username.isBlank() || req.password == null || req.password.isBlank()) {</span>
+<span class="fc" id="L34">            return ResponseEntity.badRequest().body(&quot;Username and password are required&quot;);</span>
         }
-<span class="nc bnc" id="L36" title="All 2 branches missed.">        if (userRepo.existsByUsername(req.username.trim())) {</span>
-<span class="nc" id="L37">            return ResponseEntity.badRequest().body(&quot;Username already taken&quot;);</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (userRepo.existsByUsername(req.username.trim())) {</span>
+<span class="fc" id="L37">            return ResponseEntity.badRequest().body(&quot;Username already taken&quot;);</span>
         }
 
-<span class="nc" id="L40">        User u = new User();</span>
-<span class="nc" id="L41">        u.setUsername(req.username.trim());</span>
-<span class="nc" id="L42">        u.setPassword(encoder.encode(req.password));</span>
-<span class="nc" id="L43">        u.setRole(&quot;ROLE_USER&quot;);</span>
+<span class="fc" id="L40">        User u = new User();</span>
+<span class="fc" id="L41">        u.setUsername(req.username.trim());</span>
+<span class="fc" id="L42">        u.setPassword(encoder.encode(req.password));</span>
+<span class="fc" id="L43">        u.setRole(&quot;ROLE_USER&quot;);</span>
 
-<span class="nc" id="L45">        userRepo.save(u);</span>
-<span class="nc" id="L46">        return ResponseEntity.ok(&quot;Registered&quot;);</span>
+<span class="fc" id="L45">        userRepo.save(u);</span>
+<span class="fc" id="L46">        return ResponseEntity.ok(&quot;Registered&quot;);</span>
     }
 
     @PostMapping(&quot;/login&quot;)
     public ResponseEntity&lt;?&gt; login(@RequestBody LoginRequest req) {
         try {
-<span class="nc" id="L52">            authManager.authenticate(</span>
+<span class="fc" id="L52">            authManager.authenticate(</span>
                     new UsernamePasswordAuthenticationToken(req.username, req.password)
             );
-<span class="nc" id="L55">        } catch (BadCredentialsException ex) {</span>
-<span class="nc" id="L56">            return ResponseEntity.status(401).body(&quot;Invalid credentials&quot;);</span>
-<span class="nc" id="L57">        }</span>
+<span class="fc" id="L55">        } catch (BadCredentialsException ex) {</span>
+<span class="fc" id="L56">            return ResponseEntity.status(401).body(&quot;Invalid credentials&quot;);</span>
+<span class="fc" id="L57">        }</span>
 
-<span class="nc" id="L59">        var user = userRepo.findByUsername(req.username).orElseThrow();</span>
-<span class="nc" id="L60">        String token = jwtService.generateToken(user.getUsername(), user.getRole());</span>
-<span class="nc" id="L61">        return ResponseEntity.ok(new AuthResponse(token));</span>
+<span class="fc" id="L59">        var user = userRepo.findByUsername(req.username).orElseThrow();</span>
+<span class="fc" id="L60">        String token = jwtService.generateToken(user.getUsername(), user.getRole());</span>
+<span class="fc" id="L61">        return ResponseEntity.ok(new AuthResponse(token));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

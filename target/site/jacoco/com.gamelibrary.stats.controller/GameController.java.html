@@ -17,14 +17,14 @@ import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping(&quot;/api/games&quot;)
-<span class="nc" id="L20">public class GameController {</span>
+<span class="fc" id="L20">public class GameController {</span>
 
     @Autowired
     private GameService gameService;
 
     @GetMapping
     public List&lt;GameDTO&gt; getMyGames(Authentication auth) {
-<span class="nc" id="L27">        return gameService.getMyGames(auth.getName());</span>
+<span class="fc" id="L27">        return gameService.getMyGames(auth.getName());</span>
     }
 
     @GetMapping(&quot;/{id}/cover&quot;)

@@ -13,22 +13,22 @@ public class AppUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepo;
 
-<span class="nc" id="L16">    public AppUserDetailsService(UserRepository userRepo) {</span>
-<span class="nc" id="L17">        this.userRepo = userRepo;</span>
-<span class="nc" id="L18">    }</span>
+<span class="fc" id="L16">    public AppUserDetailsService(UserRepository userRepo) {</span>
+<span class="fc" id="L17">        this.userRepo = userRepo;</span>
+<span class="fc" id="L18">    }</span>
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-<span class="nc" id="L22">        var user = userRepo.findByUsername(username)</span>
-<span class="nc" id="L23">                .orElseThrow(() -&gt; new UsernameNotFoundException(&quot;User not found&quot;));</span>
-<span class="nc bnc" id="L24" title="All 2 branches missed.">        if (!user.isEnabled()) {</span>
+<span class="fc" id="L22">        var user = userRepo.findByUsername(username)</span>
+<span class="pc" id="L23">                .orElseThrow(() -&gt; new UsernameNotFoundException(&quot;User not found&quot;));</span>
+<span class="pc bpc" id="L24" title="1 of 2 branches missed.">        if (!user.isEnabled()) {</span>
 <span class="nc" id="L25">            throw new DisabledException(&quot;User disabled&quot;);</span>
         }
 
-<span class="nc" id="L28">        return new org.springframework.security.core.userdetails.User(</span>
-<span class="nc" id="L29">                user.getUsername(),</span>
-<span class="nc" id="L30">                user.getPassword(),</span>
-<span class="nc" id="L31">                List.of(new SimpleGrantedAuthority(user.getRole()))</span>
+<span class="fc" id="L28">        return new org.springframework.security.core.userdetails.User(</span>
+<span class="fc" id="L29">                user.getUsername(),</span>
+<span class="fc" id="L30">                user.getPassword(),</span>
+<span class="fc" id="L31">                List.of(new SimpleGrantedAuthority(user.getRole()))</span>
         );
     }
 }

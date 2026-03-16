@@ -220,6 +220,37 @@ body {
     color: #fff;
     border-radius: 10px;
     padding: 8px 10px;
+
+    /* Ensure native dropdown list matches dark theme */
+    color-scheme: dark; /* hint for UA widgets */
+    appearance: auto; /* keep native arrow while allowing theme */
+}
+
+/* Force dark background/text inside the dropdown list */
+.filters select option,
+.filters select optgroup{
+    background-color: var(--bg, #020617);
+    color: #fff;
+}
+
+/* WebKit/Chromium list box background */
+.filters select::-webkit-listbox{
+    background-color: var(--bg, #020617);
+    color: #fff;
+}
+
+/* Highlighted/hovered option state */
+.filters select option:checked,
+.filters select option:hover{
+    background-color: rgba(0,242,255,0.18);
+    color: #fff;
+}
+
+/* Focus ring consistent with neon theme */
+.filters select:focus{
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,242,255,0.35);
+    border-color: rgba(0,242,255,0.45);
 }
 
 

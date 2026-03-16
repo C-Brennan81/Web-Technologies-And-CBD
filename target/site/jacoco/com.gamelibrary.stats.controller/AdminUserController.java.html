@@ -14,9 +14,9 @@ public class AdminUserController {
 
     private final UserRepository userRepo;
 
-<span class="nc" id="L17">    public AdminUserController(UserRepository userRepo) {</span>
-<span class="nc" id="L18">        this.userRepo = userRepo;</span>
-<span class="nc" id="L19">    }</span>
+<span class="fc" id="L17">    public AdminUserController(UserRepository userRepo) {</span>
+<span class="fc" id="L18">        this.userRepo = userRepo;</span>
+<span class="fc" id="L19">    }</span>
 
     // DTO so we don’t leak password hash
 <span class="nc" id="L22">    public record AdminUserRow(Long id, String username, String role, boolean enabled) {}</span>

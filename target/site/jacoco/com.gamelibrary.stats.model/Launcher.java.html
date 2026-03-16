@@ -5,14 +5,14 @@ import lombok.Data;
 import java.util.List;
 
 @Entity
-<span class="nc bnc" id="L8" title="All 30 branches missed.">@Data</span>
+<span class="pc bnc" id="L8" title="All 30 branches missed.">@Data</span>
 public class Launcher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 <span class="nc" id="L12">    private Long id;</span>
 
     @Column(unique = true, nullable = false)
-<span class="nc" id="L15">    private String name; // e.g., Steam, Epic, Xbox [cite: 10]</span>
+<span class="fc" id="L15">    private String name; // e.g., Steam, Epic, Xbox [cite: 10]</span>
 
     // One launcher can have many games
     @OneToMany(mappedBy = &quot;launcher&quot;, cascade = CascadeType.ALL)

@@ -5,54 +5,54 @@ import lombok.Data;
 
 @Entity
 @Table(name = &quot;games&quot;)
-<span class="nc bnc" id="L8" title="All 134 branches missed.">@Data</span>
+<span class="pc bnc" id="L8" title="All 134 branches missed.">@Data</span>
 public class Game {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-<span class="nc" id="L13">    private Long id;</span>
+<span class="fc" id="L13">    private Long id;</span>
 
-<span class="nc" id="L15">    private String title;</span>
-<span class="nc" id="L16">    private String genre;</span>
-<span class="nc" id="L17">    private String status;</span>
+<span class="fc" id="L15">    private String title;</span>
+<span class="fc" id="L16">    private String genre;</span>
+<span class="fc" id="L17">    private String status;</span>
 
-<span class="nc" id="L19">    private String ageRating;</span>
-
-    @Column(length = 1000)
-<span class="nc" id="L22">    private String developers;</span>
+<span class="fc" id="L19">    private String ageRating;</span>
 
     @Column(length = 1000)
-<span class="nc" id="L25">    private String publishers;</span>
+<span class="fc" id="L22">    private String developers;</span>
+
+    @Column(length = 1000)
+<span class="fc" id="L25">    private String publishers;</span>
 
     @Column(length = 1000)
 <span class="nc" id="L28">    private String genres;</span>
 
 <span class="nc" id="L30">    private java.time.LocalDateTime lastPlayed;</span>
 
-<span class="nc" id="L32">    private String completionStatus;</span>
+<span class="fc" id="L32">    private String completionStatus;</span>
 
-<span class="nc" id="L34">    private Integer timePlayed;</span>
+<span class="fc" id="L34">    private Integer timePlayed;</span>
 
-<span class="nc" id="L36">    private Double communityScore;</span>
+<span class="fc" id="L36">    private Double communityScore;</span>
 
     @Column(length = 500)
     private String coverUrl;
 
     @Column(name = &quot;purchase_price&quot;)
-<span class="nc" id="L42">    private Double purchasePrice;</span>
+<span class="fc" id="L42">    private Double purchasePrice;</span>
 
     // Relationship to Launcher (One-to-Many side)
     @ManyToOne
     @JoinColumn(name = &quot;launcher_id&quot;)
-<span class="nc" id="L47">    private Launcher launcher;</span>
+<span class="fc" id="L47">    private Launcher launcher;</span>
 
     // Relationship to User (Security requirement)
     @ManyToOne
     @JoinColumn(name = &quot;user_id&quot;)
 <span class="nc" id="L52">    private User user;</span>
 
-<span class="nc" id="L54">    public String getCoverUrl() { return coverUrl; }</span>
-<span class="nc" id="L55">    public void setCoverUrl(String coverUrl) { this.coverUrl = coverUrl; }</span>
+<span class="fc" id="L54">    public String getCoverUrl() { return coverUrl; }</span>
+<span class="fc" id="L55">    public void setCoverUrl(String coverUrl) { this.coverUrl = coverUrl; }</span>
 
 }
 
