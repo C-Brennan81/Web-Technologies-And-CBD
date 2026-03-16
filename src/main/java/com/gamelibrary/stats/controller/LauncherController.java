@@ -31,7 +31,7 @@ public class LauncherController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Launcher req) {
+    public ResponseEntity<Object> create(@RequestBody Launcher req) {
         if (req == null || req.getName() == null || req.getName().trim().isBlank()) {
             return ResponseEntity.badRequest().body("Launcher name is required");
         }
@@ -48,7 +48,7 @@ public class LauncherController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Launcher req) {
+    public ResponseEntity<Object> update(@PathVariable Long id, @RequestBody Launcher req) {
         if (req == null || req.getName() == null || req.getName().trim().isBlank()) {
             return ResponseEntity.badRequest().body("Launcher name is required");
         }
@@ -71,7 +71,7 @@ public class LauncherController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
+    public ResponseEntity<Object> delete(@PathVariable Long id) {
         if (!launcherRepository.existsById(id)) return ResponseEntity.notFound().build();
         launcherRepository.deleteById(id);
         return ResponseEntity.ok("Deleted");

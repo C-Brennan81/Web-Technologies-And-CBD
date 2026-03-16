@@ -1,6 +1,5 @@
 package com.gamelibrary.Tests.controller;
 
-import com.gamelibrary.stats.controller.GameController;
 import com.gamelibrary.stats.dto.GameDTO;
 import com.gamelibrary.stats.service.GameService;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +15,7 @@ import com.gamelibrary.stats.GameLibraryStatsApp;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
-import java.util.Map;
+
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;

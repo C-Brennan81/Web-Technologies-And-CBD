@@ -5,25 +5,24 @@ import com.gamelibrary.stats.model.Launcher;
 import com.gamelibrary.stats.model.User;
 import com.gamelibrary.stats.repository.LauncherRepository;
 import com.gamelibrary.stats.repository.UserRepository;
-import com.gamelibrary.stats.service.GameService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-public class DataSeederTest {
+class DataSeederTest {
 
     private LauncherRepository launcherRepository;
     private UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
-    private GameService gameService;
     private DataSeeder dataSeeder;
 
     @BeforeEach
@@ -31,14 +30,15 @@ public class DataSeederTest {
         launcherRepository = mock(LauncherRepository.class);
         userRepository = mock(UserRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
-        gameService = mock(GameService.class);
 
         dataSeeder = new DataSeeder(
                 launcherRepository,
                 userRepository,
-                passwordEncoder,
-                gameService
+                passwordEncoder
         );
+
+        ReflectionTestUtils.setField(dataSeeder, "seedAdminUsername", "admin");
+        ReflectionTestUtils.setField(dataSeeder, "seedAdminPassword", "admin");
     }
 
     @Test
@@ -60,18 +60,25 @@ public class DataSeederTest {
     }
 
     @Test
-    @DisplayName("run does not seed launchers when launchers already exist")
-    void run_does_not_seed_launchers_when_present() throws Exception {
-        when(launcherRepository.count()).thenReturn(3L);
-        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(new User()));
+    @DisplayName("run does not reseed admin when already present")
+    void run_does_not_seed_admin_when_existing() throws Exception {
+        when(launcherRepository.count()).thenReturn(1L);
+
+        User existing = new User();
+        existing.setUsername("admin");
+        existing.setPassword("OLD_PASSWORD");
+        existing.setRole("ROLE_USER");
+
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(existing));
 
         dataSeeder.run();
 
-        verify(launcherRepository, never()).save(any(Launcher.class));
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    @DisplayName("run seeds demo admin user when missing")
+    @DisplayName("run seeds admin when missing")
     void run_seeds_admin_when_missing() throws Exception {
         when(launcherRepository.count()).thenReturn(1L);
         when(userRepository.findByUsername("admin")).thenReturn(Optional.empty());
@@ -90,19 +97,23 @@ public class DataSeederTest {
     }
 
     @Test
-    @DisplayName("run does not create demo admin user when already present")
-    void run_does_not_seed_admin_when_existing() throws Exception {
+    @DisplayName("run updates existing admin user")
+    void run_updates_existing_admin_when_present() throws Exception {
         when(launcherRepository.count()).thenReturn(1L);
 
         User existing = new User();
         existing.setUsername("admin");
-        existing.setRole("ROLE_ADMIN");
+        existing.setPassword("OLD_PASSWORD");
+        existing.setRole("ROLE_USER");
 
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(existing));
+        when(passwordEncoder.encode("admin")).thenReturn("ENC_ADMIN");
 
         dataSeeder.run();
 
-        verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository).save(existing);
+        assertEquals("admin", existing.getUsername());
+        assertEquals("ENC_ADMIN", existing.getPassword());
+        assertEquals("ROLE_ADMIN", existing.getRole());
     }
 }

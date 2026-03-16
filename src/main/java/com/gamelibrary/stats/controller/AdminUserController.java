@@ -33,7 +33,7 @@ public class AdminUserController {
 
     @PatchMapping("/{id}/role")
     @Transactional
-    public ResponseEntity<?> updateRole(@PathVariable Long id, @RequestBody UpdateRoleRequest req) {
+    public ResponseEntity<Object> updateRole(@PathVariable Long id, @RequestBody UpdateRoleRequest req) {
         if (req == null || req.role() == null || req.role().isBlank()) {
             return ResponseEntity.badRequest().body("Role is required");
         }
@@ -55,7 +55,7 @@ public class AdminUserController {
 
     @PatchMapping("/{id}/enabled")
     @Transactional
-    public ResponseEntity<?> updateEnabled(@PathVariable Long id, @RequestBody UpdateEnabledRequest req) {
+    public ResponseEntity<Object> updateEnabled(@PathVariable Long id, @RequestBody UpdateEnabledRequest req) {
         var userOpt = userRepo.findById(id);
         if (userOpt.isEmpty()) return ResponseEntity.notFound().build();
 
@@ -67,7 +67,7 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
         if (!userRepo.existsById(id)) return ResponseEntity.notFound().build();
 
         // If your User has cascade+orphanRemoval on games, this deletes their games too

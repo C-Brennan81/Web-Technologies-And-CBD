@@ -29,17 +29,17 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
-        if (req.username == null || req.username.isBlank() || req.password == null || req.password.isBlank()) {
+    public ResponseEntity<Object> register(@RequestBody RegisterRequest req) {
+        if (req.getUsername() == null || req.getUsername().isBlank() || req.getPassword() == null || req.getPassword().isBlank()) {
             return ResponseEntity.badRequest().body("Username and password are required");
         }
-        if (userRepo.existsByUsername(req.username.trim())) {
+        if (userRepo.existsByUsername(req.getUsername().trim())) {
             return ResponseEntity.badRequest().body("Username already taken");
         }
 
         User u = new User();
-        u.setUsername(req.username.trim());
-        u.setPassword(encoder.encode(req.password));
+        u.setUsername(req.getUsername().trim());
+        u.setPassword(encoder.encode(req.getPassword()));
         u.setRole("ROLE_USER");
 
         userRepo.save(u);
@@ -47,16 +47,16 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+    public ResponseEntity<Object> login(@RequestBody LoginRequest req) {
         try {
             authManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(req.username, req.password)
+                    new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
             );
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
 
-        var user = userRepo.findByUsername(req.username).orElseThrow();
+        var user = userRepo.findByUsername(req.getUsername()).orElseThrow();
         String token = jwtService.generateToken(user.getUsername(), user.getRole());
         return ResponseEntity.ok(new AuthResponse(token));
     }

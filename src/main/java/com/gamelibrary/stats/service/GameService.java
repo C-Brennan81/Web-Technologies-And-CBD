@@ -3,45 +3,56 @@ package com.gamelibrary.stats.service;
 import com.gamelibrary.stats.dto.GameDTO;
 import com.gamelibrary.stats.model.Game;
 import com.gamelibrary.stats.model.Launcher;
+import com.gamelibrary.stats.model.User;
 import com.gamelibrary.stats.repository.GameRepository;
 import com.gamelibrary.stats.repository.LauncherRepository;
+import com.gamelibrary.stats.repository.UserRepository;
 import com.opencsv.CSVReader;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.gamelibrary.stats.model.User;
-import com.gamelibrary.stats.repository.UserRepository;
-
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 @Service
 public class GameService {
 
-    @Autowired private GameRepository gameRepository;
-    @Autowired private LauncherRepository launcherRepository;
-    @Autowired private SteamGridDbClient steamGridDbClient;
-    @Autowired private UserRepository userRepository;
+    private static final String PLAYED = "PLAYED";
+    private static final String NOT_PLAYED = "NOT PLAYED";
+    private static final String COMPLETED = "COMPLETED";
 
+    private final GameRepository gameRepository;
+    private final LauncherRepository launcherRepository;
+    private final SteamGridDbClient steamGridDbClient;
+    private final UserRepository userRepository;
     private final Random random = new Random();
 
-    // Upload endpoint uses this
-    // Upload endpoint uses this
+    public GameService(
+            GameRepository gameRepository,
+            LauncherRepository launcherRepository,
+            SteamGridDbClient steamGridDbClient,
+            UserRepository userRepository
+    ) {
+        this.gameRepository = gameRepository;
+        this.launcherRepository = launcherRepository;
+        this.steamGridDbClient = steamGridDbClient;
+        this.userRepository = userRepository;
+    }
+
     public String importGames(MultipartFile file, String username, boolean excludeNonFull) throws Exception {
         try (InputStream is = file.getInputStream()) {
             return importGames(is, username, excludeNonFull);
         }
     }
 
-    // Backward compatible default
     public String importGames(MultipartFile file, String username) throws Exception {
         return importGames(file, username, true);
     }
@@ -54,58 +65,24 @@ public class GameService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-            String[] header = reader.readNext(); // header
-            if (header == null) return "Empty CSV";
-
-            // Build a normalized header name -> index map (tolerant to variants)
-            java.util.Map<String,Integer> idx = new java.util.HashMap<>();
-            for (int i=0; i<header.length; i++) {
-                String key = normalizeHeader(header[i]);
-                if (!key.isBlank()) idx.put(key, i);
+            String[] header = reader.readNext();
+            if (header == null) {
+                return "Empty CSV";
             }
 
-            // Row loop
+            Map<String, Integer> idx = buildHeaderIndex(header);
+
             String[] currentLine;
             while ((currentLine = reader.readNext()) != null) {
                 String title = firstNonNull(
                         safe(currentLine, idx.getOrDefault("name", -1)),
                         safe(currentLine, idx.getOrDefault("title", -1))
                 );
-                if (title == null || title.isBlank()) {
+
+                if (shouldSkipRow(title, excludeNonFull)) {
                     skippedCount++;
                     continue;
                 }
-
-                if (excludeNonFull && isNonFullRelease(title)) {
-                    skippedCount++;
-                    continue;
-                }
-
-                Game game = new Game();
-                game.setTitle(title.trim());
-                game.setUser(user);
-
-                String genres = firstNonNull(
-                        safe(currentLine, idx.getOrDefault("genres", -1)),
-                        safe(currentLine, idx.getOrDefault("genre", -1))
-                );
-                game.setGenres(genres);
-                game.setGenre(firstGenre(genres));
-
-                String completionRaw = firstNonNull(
-                        safe(currentLine, idx.getOrDefault("completionstatus", -1)),
-                        safe(currentLine, idx.getOrDefault("status", -1))
-                );
-                String completion = normalizeCompletionStatus(completionRaw);
-                game.setCompletionStatus(completion);
-                game.setStatus(completion);
-
-                // Time Played: assume seconds if large; attempt parse as integer
-                Integer timeVal = parseIntSafe(firstNonNull(
-                        safe(currentLine, idx.getOrDefault("timeplayed", -1)),
-                        safe(currentLine, idx.getOrDefault("playtime", -1))
-                ));
-                game.setTimePlayed(timeVal);
 
                 String sourceRaw = firstNonNull(
                         safe(currentLine, idx.getOrDefault("sources", -1)),
@@ -113,31 +90,16 @@ public class GameService {
                         safe(currentLine, idx.getOrDefault("launcher", -1)),
                         safe(currentLine, idx.getOrDefault("platform", -1))
                 );
+
                 if (sourceRaw == null || sourceRaw.isBlank()) {
                     skippedCount++;
                     continue;
                 }
+
                 String normalizedLauncherName = normalizeLauncherName(sourceRaw);
+                Launcher launcher = resolveLauncher(normalizedLauncherName);
 
-                // Resolve or create launcher (case-insensitive)
-                Optional<Launcher> launcherOpt = launcherRepository.findByNameIgnoreCase(normalizedLauncherName);
-                Launcher launcher = launcherOpt.orElseGet(() -> {
-                    Launcher l = new Launcher();
-                    l.setName(normalizedLauncherName);
-                    return launcherRepository.save(l);
-                });
-                game.setLauncher(launcher);
-
-                double price = 5.0 + (55.0 * random.nextDouble());
-                game.setPurchasePrice(Math.round(price * 100.0) / 100.0);
-
-                game.setAgeRating(firstNonNull(
-                        safe(currentLine, idx.getOrDefault("agerating", -1)),
-                        safe(currentLine, idx.getOrDefault("age", -1))
-                ));
-                game.setDevelopers(safe(currentLine, idx.getOrDefault("developers", -1)));
-                game.setPublishers(safe(currentLine, idx.getOrDefault("publishers", -1)));
-                game.setCommunityScore(parseDoubleSafe(safe(currentLine, idx.getOrDefault("communityscore", -1))));
+                Game game = buildGame(currentLine, idx, user, title, launcher);
 
                 if (gameRepository.existsByUserUsernameAndTitleAndLauncher_Name(
                         username, game.getTitle(), game.getLauncher().getName()
@@ -169,137 +131,236 @@ public class GameService {
     public List<GameDTO> getMyGames(String username) {
         return gameRepository.findByUserUsername(username)
                 .stream()
-                .map(g -> {
-                    String platform = (g.getLauncher() != null) ? g.getLauncher().getName() : null;
-                    Double hours = (g.getTimePlayed() == null) ? null : (g.getTimePlayed() / 3600.0);
+                .map(game -> {
+                    String platform = game.getLauncher() != null ? game.getLauncher().getName() : null;
+                    Double hours = game.getTimePlayed() == null ? null : game.getTimePlayed() / 3600.0;
 
                     GameDTO dto = new GameDTO(
-                            g.getId(),
-                            g.getTitle(),
+                            game.getId(),
+                            game.getTitle(),
                             platform,
                             hours,
-                            g.getCompletionStatus(),
-                            g.getPurchasePrice(),
-                            g.getGenre()
+                            game.getCompletionStatus(),
+                            game.getPurchasePrice(),
+                            game.getGenre()
                     );
 
-                    dto.setCoverUrl(g.getCoverUrl());
+                    dto.setCoverUrl(game.getCoverUrl());
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
-
-
-
-    private static String safe(String[] line, int index) {
-        if (line == null || index < 0 || index >= line.length) return null;
-        String v = line[index];
-        return (v == null || v.isBlank()) ? null : v.trim();
-    }
-
-    private static String firstGenre(String genres) {
-        if (genres == null || genres.isBlank()) return null;
-        String[] parts = genres.split(",");
-        return parts.length > 0 ? parts[0].trim() : genres.trim();
-    }
-
-    private static Integer parseIntSafe(String v) {
-        try {
-            if (v == null || v.isBlank()) return null;
-            return Integer.parseInt(v.trim());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private static Double parseDoubleSafe(String v) {
-        try {
-            if (v == null || v.isBlank()) return null;
-            return Double.parseDouble(v.trim());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    //Helpers
     public long countGamesForUser(String username) {
         return gameRepository.findByUserUsername(username).size();
     }
 
-    private static boolean isNonFullRelease(String title) {
-        if (title == null) return false;
-        String t = normalizeTitle(title);
-
-        // keep these simple and obvious for marking
-        return t.contains(" demo")
-                || t.contains(" beta")
-                || t.contains(" playtest")
-                || t.contains(" alpha")
-                || t.contains(" trial");
-    }
-
-    private static String normalizeTitle(String title) {
-        String t = title.toLowerCase();
-
-        // replace non-alphanumeric with spaces
-        t = t.replaceAll("[^a-z0-9]+", " ");
-
-        // collapse multiple spaces
-        t = t.replaceAll("\\s+", " ").trim();
-
-        // pad with spaces so "demo" matches cleanly with contains(" demo")
-        return " " + t + " ";
-    }
-
     public Optional<String> getOrFetchCoverForUser(Long id, String username) {
-        return gameRepository.findByIdAndUserUsername(id, username).map(g -> {
-            String coverUrl = g.getCoverUrl();
+        return gameRepository.findByIdAndUserUsername(id, username).map(game -> {
+            String coverUrl = game.getCoverUrl();
+
             if (coverUrl == null || coverUrl.isBlank()) {
-                String found = steamGridDbClient.findCoverUrlByName(g.getTitle());
+                String found = steamGridDbClient.findCoverUrlByName(game.getTitle());
                 if (found != null && !found.isBlank()) {
-                    g.setCoverUrl(found);
-                    gameRepository.save(g);
+                    game.setCoverUrl(found);
+                    gameRepository.save(game);
                     coverUrl = found;
                 }
             }
+
             return coverUrl;
         });
     }
 
-    // ---- Helpers for tolerant CSV parsing ----
-    private static String normalizeHeader(String h) {
-        if (h == null) return "";
-        String k = h.toLowerCase();
-        // remove non-alphanumeric characters
-        k = k.replaceAll("[^a-z0-9]+", "");
-        return k.trim();
+    private static Map<String, Integer> buildHeaderIndex(String[] header) {
+        Map<String, Integer> idx = new HashMap<>();
+        for (int i = 0; i < header.length; i++) {
+            String key = normalizeHeader(header[i]);
+            if (!key.isBlank()) {
+                idx.put(key, i);
+            }
+        }
+        return idx;
     }
 
-    private static String firstNonNull(String... vals) {
-        if (vals == null) return null;
-        for (String v : vals) {
-            if (v != null && !v.isBlank()) return v;
+    private static boolean shouldSkipRow(String title, boolean excludeNonFull) {
+        if (title == null || title.isBlank()) {
+            return true;
+        }
+        return excludeNonFull && isNonFullRelease(title);
+    }
+
+    private Game buildGame(
+            String[] currentLine,
+            Map<String, Integer> idx,
+            User user,
+            String title,
+            Launcher launcher
+    ) {
+        Game game = new Game();
+        game.setTitle(title.trim());
+        game.setUser(user);
+        game.setLauncher(launcher);
+
+        String genres = firstNonNull(
+                safe(currentLine, idx.getOrDefault("genres", -1)),
+                safe(currentLine, idx.getOrDefault("genre", -1))
+        );
+        game.setGenres(genres);
+        game.setGenre(firstGenre(genres));
+
+        String completionRaw = firstNonNull(
+                safe(currentLine, idx.getOrDefault("completionstatus", -1)),
+                safe(currentLine, idx.getOrDefault("status", -1))
+        );
+        String completion = normalizeCompletionStatus(completionRaw);
+        game.setCompletionStatus(completion);
+        game.setStatus(completion);
+
+        Integer timeVal = parseIntSafe(firstNonNull(
+                safe(currentLine, idx.getOrDefault("timeplayed", -1)),
+                safe(currentLine, idx.getOrDefault("playtime", -1))
+        ));
+        game.setTimePlayed(timeVal);
+
+        double price = 5.0 + (55.0 * random.nextDouble());
+        game.setPurchasePrice(Math.round(price * 100.0) / 100.0);
+
+        game.setAgeRating(firstNonNull(
+                safe(currentLine, idx.getOrDefault("agerating", -1)),
+                safe(currentLine, idx.getOrDefault("age", -1))
+        ));
+        game.setDevelopers(safe(currentLine, idx.getOrDefault("developers", -1)));
+        game.setPublishers(safe(currentLine, idx.getOrDefault("publishers", -1)));
+        game.setCommunityScore(parseDoubleSafe(safe(currentLine, idx.getOrDefault("communityscore", -1))));
+
+        return game;
+    }
+
+    private Launcher resolveLauncher(String normalizedLauncherName) {
+        return launcherRepository.findByNameIgnoreCase(normalizedLauncherName)
+                .orElseGet(() -> {
+                    Launcher launcher = new Launcher();
+                    launcher.setName(normalizedLauncherName);
+                    return launcherRepository.save(launcher);
+                });
+    }
+
+    private static String safe(String[] line, int index) {
+        if (line == null || index < 0 || index >= line.length) {
+            return null;
+        }
+        String value = line[index];
+        return (value == null || value.isBlank()) ? null : value.trim();
+    }
+
+    private static String firstGenre(String genres) {
+        if (genres == null || genres.isBlank()) {
+            return null;
+        }
+        String[] parts = genres.split(",");
+        return parts.length > 0 ? parts[0].trim() : genres.trim();
+    }
+
+    private static Integer parseIntSafe(String value) {
+        try {
+            if (value == null || value.isBlank()) {
+                return null;
+            }
+            return Integer.parseInt(value.trim());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static Double parseDoubleSafe(String value) {
+        try {
+            if (value == null || value.isBlank()) {
+                return null;
+            }
+            return Double.parseDouble(value.trim());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static boolean isNonFullRelease(String title) {
+        if (title == null) {
+            return false;
+        }
+        String normalized = normalizeTitle(title);
+        return normalized.contains(" demo")
+                || normalized.contains(" beta")
+                || normalized.contains(" playtest")
+                || normalized.contains(" alpha")
+                || normalized.contains(" trial");
+    }
+
+    private static String normalizeTitle(String title) {
+        String normalized = title.toLowerCase();
+        normalized = normalized.replaceAll("[^a-z0-9]+", " ");
+        normalized = normalized.replaceAll("\\s+", " ").trim();
+        return " " + normalized + " ";
+    }
+
+    private static String normalizeHeader(String header) {
+        if (header == null) {
+            return "";
+        }
+        String normalized = header.toLowerCase();
+        normalized = normalized.replaceAll("[^a-z0-9]+", "");
+        return normalized.trim();
+    }
+
+    private static String firstNonNull(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
         }
         return null;
     }
 
     private static String normalizeCompletionStatus(String status) {
-        if (status == null || status.isBlank()) return "NOT PLAYED";
-        String s = status.trim().toUpperCase();
-        if (s.contains("NOT") && s.contains("PLAYED")) return "NOT PLAYED";
-        if (s.contains("PLAYED") && !s.contains("NOT")) return "PLAYED";
-        if (s.contains("COMPLETE")) return "COMPLETED";
-        return s;
+        if (status == null || status.isBlank()) {
+            return NOT_PLAYED;
+        }
+
+        String normalized = status.trim().toUpperCase();
+
+        if (normalized.contains("NOT") && normalized.contains(PLAYED)) {
+            return NOT_PLAYED;
+        }
+        if (normalized.contains(PLAYED) && !normalized.contains("NOT")) {
+            return PLAYED;
+        }
+        if (normalized.contains("COMPLETE")) {
+            return COMPLETED;
+        }
+
+        return normalized;
     }
 
     private static String normalizeLauncherName(String name) {
-        if (name == null) return null;
-        String n = name.trim();
-        // Common aliases mapping
-        if (n.equalsIgnoreCase("Ubisoft Connect")) return "Ubisoft";
-        if (n.equalsIgnoreCase("EA App") || n.equalsIgnoreCase("Origin")) return "EA";
-        if (n.equalsIgnoreCase("Microsoft Store") || n.equalsIgnoreCase("Xbox")) return "Xbox";
-        return n;
+        if (name == null) {
+            return null;
+        }
+
+        String normalized = name.trim();
+
+        if (normalized.equalsIgnoreCase("Ubisoft Connect")) {
+            return "Ubisoft";
+        }
+        if (normalized.equalsIgnoreCase("EA App") || normalized.equalsIgnoreCase("Origin")) {
+            return "EA";
+        }
+        if (normalized.equalsIgnoreCase("Microsoft Store") || normalized.equalsIgnoreCase("Xbox")) {
+            return "Xbox";
+        }
+
+        return normalized;
     }
 }
