@@ -27,7 +27,7 @@ public class DataSeeder implements CommandLineRunner {
     @Value("${app.seed.admin.username:admin}")
     private String seedAdminUsername;
 
-    @Value("${app.seed.admin.password:ChangeMe123!}")
+    @Value("${app.seed.admin.password:admin}")
     private String seedAdminPassword;
 
     public DataSeeder(
@@ -51,12 +51,16 @@ public class DataSeeder implements CommandLineRunner {
             log.info("Database seeded with default PC launchers.");
         }
 
-        userRepository.findByUsername(seedAdminUsername).orElseGet(() -> {
+        userRepository.findByUsername(seedAdminUsername).ifPresentOrElse(existingUser -> {
+            existingUser.setPassword(passwordEncoder.encode(seedAdminPassword));
+            existingUser.setRole("ROLE_ADMIN");
+            userRepository.save(existingUser);
+        }, () -> {
             User user = new User();
             user.setUsername(seedAdminUsername);
             user.setPassword(passwordEncoder.encode(seedAdminPassword));
             user.setRole("ROLE_ADMIN");
-            return userRepository.save(user);
+            userRepository.save(user);
         });
     }
 }
