@@ -1,4 +1,4 @@
-package com.gamelibrary.stats.model;
+ package com.gamelibrary.stats.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
