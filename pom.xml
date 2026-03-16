@@ -9,7 +9,7 @@
     </parent>
     <groupId>com.gamelibrary</groupId>
     <artifactId>gamelibrarystats</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0</version>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
