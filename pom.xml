@@ -119,6 +119,7 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+
                     <execution>
                         <id>report</id>
                         <phase>verify</phase>
@@ -127,18 +128,27 @@
                         </goals>
                         <configuration>
                             <excludes>
-                                <exclude>**/model/**</exclude>
-                                <exclude>**/dto/**</exclude>
+                                <exclude>**/*Application.*</exclude>
                                 <exclude>**/config/**</exclude>
+                                <exclude>**/entity/**</exclude>
+                                <exclude>**/dto/**</exclude>
                             </excludes>
                         </configuration>
                     </execution>
+
                     <execution>
                         <id>check</id>
+                        <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <excludes>
+                                <exclude>**/*Application.*</exclude>
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/entity/**</exclude>
+                                <exclude>**/dto/**</exclude>
+                            </excludes>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
@@ -149,11 +159,6 @@
                                             <minimum>0.80</minimum>
                                         </limit>
                                     </limits>
-                                    <excludes>
-                                        <exclude>com.gamelibrary.stats.model.*</exclude>
-                                        <exclude>com.gamelibrary.stats.dto.*</exclude>
-                                        <exclude>com.gamelibrary.stats.config.*</exclude>
-                                    </excludes>
                                 </rule>
                             </rules>
                         </configuration>
