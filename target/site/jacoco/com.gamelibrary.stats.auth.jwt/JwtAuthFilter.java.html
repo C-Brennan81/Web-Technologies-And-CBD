@@ -32,7 +32,7 @@ public class JwtAuthFilter extends GenericFilter {
 <span class="pc bpc" id="L32" title="1 of 4 branches missed.">        if (auth != null &amp;&amp; auth.startsWith(&quot;Bearer &quot;)) {</span>
 <span class="fc" id="L33">            String token = auth.substring(7);</span>
 
-<span class="pc bpc" id="L35" title="1 of 4 branches missed.">            if (jwtService.isValid(token) &amp;&amp; SecurityContextHolder.getContext().getAuthentication() == null) {</span>
+<span class="fc bfc" id="L35" title="All 4 branches covered.">            if (jwtService.isValid(token) &amp;&amp; SecurityContextHolder.getContext().getAuthentication() == null) {</span>
 <span class="fc" id="L36">                String username = jwtService.extractUsername(token);</span>
                 //Wrapped in a try catch block so that I
                 //get a 401 and the frontend can send you back to login,
@@ -45,9 +45,9 @@ public class JwtAuthFilter extends GenericFilter {
                 );
 <span class="fc" id="L46">                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));</span>
 <span class="fc" id="L47">                SecurityContextHolder.getContext().setAuthentication(authToken);</span>
-<span class="nc" id="L48">                } catch (UsernameNotFoundException ex) {</span>
+<span class="fc" id="L48">                } catch (UsernameNotFoundException ex) {</span>
                     // Token might be old / user deleted. Ignore token and continue as unauthenticated.
-<span class="nc" id="L50">                    SecurityContextHolder.clearContext();</span>
+<span class="fc" id="L50">                    SecurityContextHolder.clearContext();</span>
 <span class="fc" id="L51">                }</span>
             }
         }

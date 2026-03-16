@@ -10,17 +10,26 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class SteamGridDbClient {
 
     private static final Logger log = LoggerFactory.getLogger(SteamGridDbClient.class);
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Value("${steamgriddb.apiKey}")
     private String apiKey;
+
+    public SteamGridDbClient() {
+        this(new RestTemplate());
+    }
+
+    public SteamGridDbClient(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     /**
      * Returns a single best cover URL (grid) for a game name, or null if not found.
@@ -35,7 +44,6 @@ public class SteamGridDbClient {
 
             String url = fetchBestGrid(gameId);
             if (url == null) {
-                // Retry without dimensions as a fallback
                 url = fetchBestGrid(gameId, false);
             }
             if (url == null) {
@@ -72,7 +80,8 @@ public class SteamGridDbClient {
     }
 
     private String fetchBestGrid(int gameId, boolean withDimensions) {
-        String url = "https://www.steamgriddb.com/api/v2/grids/game/" + gameId + (withDimensions ? "?dimensions=600x900" : "");
+        String url = "https://www.steamgriddb.com/api/v2/grids/game/" + gameId
+                + (withDimensions ? "?dimensions=600x900" : "");
 
         Map<?, ?> json = getJson(url);
         if (json == null) return null;
@@ -80,7 +89,6 @@ public class SteamGridDbClient {
         Object dataObj = json.get("data");
         if (!(dataObj instanceof List<?> data) || data.isEmpty()) return null;
 
-        // pick the first image returned
         Object first = data.get(0);
         if (!(first instanceof Map<?, ?> firstMap)) return null;
 

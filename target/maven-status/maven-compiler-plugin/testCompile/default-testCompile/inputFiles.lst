@@ -1,6 +1,7 @@
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\service\GameServiceTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\karate\GamesKarateRunnerTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\auth\JwtServiceAdditionalTest.java
+C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\GameLibraryStatsAppTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\auth\JwtServiceTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\controller\AdminUserControllerTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\karate\AuthKarateRunnerTest.java
@@ -10,7 +11,9 @@ C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\SmokeTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\auth\AuthControllerTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\controller\GameControllerTest.java
+C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\service\SteamGridDbClientTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\repository\UserRepositoryTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\service\GameServiceBranchesTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\controller\LauncherControllerTest.java
 C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\ui\UISmokeIT.java
+C:\Users\Craig - School\Documents\MASE2025\Agile & Testing\Web-Technologies-And-CBD\src\test\java\com\gamelibrary\Tests\config\DataSeederTest.java
