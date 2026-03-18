@@ -100,4 +100,16 @@ class DataSeederTest {
         assertEquals("ENC_ADMIN", existing.getPassword());
         assertEquals("ROLE_ADMIN", existing.getRole());
     }
+
+    @Test
+    @DisplayName("run does not seed launchers when repository already has entries")
+    void run_does_not_seed_launchers_when_repository_not_empty() throws Exception {
+        when(launcherRepository.count()).thenReturn(2L);
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(new User()));
+        when(passwordEncoder.encode("admin")).thenReturn("ENC_ADMIN");
+
+        dataSeeder.run();
+
+        verify(launcherRepository, never()).save(any(Launcher.class));
+    }
 }

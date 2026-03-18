@@ -33,7 +33,7 @@ public class AdminUserController {
 
     @PatchMapping(&quot;/{id}/role&quot;)
     @Transactional
-    public ResponseEntity&lt;?&gt; updateRole(@PathVariable Long id, @RequestBody UpdateRoleRequest req) {
+    public ResponseEntity&lt;Object&gt; updateRole(@PathVariable Long id, @RequestBody UpdateRoleRequest req) {
 <span class="pc bpc" id="L37" title="2 of 6 branches missed.">        if (req == null || req.role() == null || req.role().isBlank()) {</span>
 <span class="fc" id="L38">            return ResponseEntity.badRequest().body(&quot;Role is required&quot;);</span>
         }
@@ -55,7 +55,7 @@ public class AdminUserController {
 
     @PatchMapping(&quot;/{id}/enabled&quot;)
     @Transactional
-    public ResponseEntity&lt;?&gt; updateEnabled(@PathVariable Long id, @RequestBody UpdateEnabledRequest req) {
+    public ResponseEntity&lt;Object&gt; updateEnabled(@PathVariable Long id, @RequestBody UpdateEnabledRequest req) {
 <span class="fc" id="L59">        var userOpt = userRepo.findById(id);</span>
 <span class="fc bfc" id="L60" title="All 2 branches covered.">        if (userOpt.isEmpty()) return ResponseEntity.notFound().build();</span>
 
@@ -67,7 +67,7 @@ public class AdminUserController {
     }
 
     @DeleteMapping(&quot;/{id}&quot;)
-    public ResponseEntity&lt;?&gt; deleteUser(@PathVariable Long id) {
+    public ResponseEntity&lt;Object&gt; deleteUser(@PathVariable Long id) {
 <span class="fc bfc" id="L71" title="All 2 branches covered.">        if (!userRepo.existsById(id)) return ResponseEntity.notFound().build();</span>
 
         // If your User has cascade+orphanRemoval on games, this deletes their games too
