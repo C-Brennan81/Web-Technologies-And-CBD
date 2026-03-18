@@ -18,7 +18,7 @@ import java.util.UUID;
 @SpringBootTest(classes = GameLibraryStatsApp.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class UISmokeIT {
+ class UISmokeIT {
 
     private static WebDriver driver;
     private static WebDriverWait wait;

@@ -43,7 +43,7 @@ class DataSeederTest {
 
     @Test
     @DisplayName("run seeds default launchers when repository is empty")
-    void run_seeds_default_launchers_when_empty() throws Exception {
+    void run_seeds_default_launchers_when_empty() {
         when(launcherRepository.count()).thenReturn(0L);
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(new User()));
 
@@ -61,7 +61,7 @@ class DataSeederTest {
 
     @Test
     @DisplayName("run seeds admin when missing")
-    void run_seeds_admin_when_missing() throws Exception {
+    void run_seeds_admin_when_missing() {
         when(launcherRepository.count()).thenReturn(1L);
         when(userRepository.findByUsername("admin")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("admin")).thenReturn("ENC_ADMIN");
@@ -80,7 +80,7 @@ class DataSeederTest {
 
     @Test
     @DisplayName("run updates existing admin when present")
-    void run_updates_existing_admin_when_present() throws Exception {
+    void run_updates_existing_admin_when_present()  {
         when(launcherRepository.count()).thenReturn(1L);
 
         User existing = new User();
@@ -103,7 +103,7 @@ class DataSeederTest {
 
     @Test
     @DisplayName("run does not seed launchers when repository already has entries")
-    void run_does_not_seed_launchers_when_repository_not_empty() throws Exception {
+    void run_does_not_seed_launchers_when_repository_not_empty() {
         when(launcherRepository.count()).thenReturn(2L);
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(new User()));
         when(passwordEncoder.encode("admin")).thenReturn("ENC_ADMIN");
