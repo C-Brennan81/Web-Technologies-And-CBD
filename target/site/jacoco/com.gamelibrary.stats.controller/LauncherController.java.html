@@ -31,7 +31,7 @@ public class LauncherController {
     }
 
     @PostMapping
-    public ResponseEntity&lt;?&gt; create(@RequestBody Launcher req) {
+    public ResponseEntity&lt;Object&gt; create(@RequestBody Launcher req) {
 <span class="pc bpc" id="L35" title="2 of 6 branches missed.">        if (req == null || req.getName() == null || req.getName().trim().isBlank()) {</span>
 <span class="fc" id="L36">            return ResponseEntity.badRequest().body(&quot;Launcher name is required&quot;);</span>
         }
@@ -48,7 +48,7 @@ public class LauncherController {
     }
 
     @PutMapping(&quot;/{id}&quot;)
-    public ResponseEntity&lt;?&gt; update(@PathVariable Long id, @RequestBody Launcher req) {
+    public ResponseEntity&lt;Object&gt; update(@PathVariable Long id, @RequestBody Launcher req) {
 <span class="pc bpc" id="L52" title="2 of 6 branches missed.">        if (req == null || req.getName() == null || req.getName().trim().isBlank()) {</span>
 <span class="fc" id="L53">            return ResponseEntity.badRequest().body(&quot;Launcher name is required&quot;);</span>
         }
@@ -71,7 +71,7 @@ public class LauncherController {
     }
 
     @DeleteMapping(&quot;/{id}&quot;)
-    public ResponseEntity&lt;?&gt; delete(@PathVariable Long id) {
+    public ResponseEntity&lt;Object&gt; delete(@PathVariable Long id) {
 <span class="fc bfc" id="L75" title="All 2 branches covered.">        if (!launcherRepository.existsById(id)) return ResponseEntity.notFound().build();</span>
 <span class="fc" id="L76">        launcherRepository.deleteById(id);</span>
 <span class="fc" id="L77">        return ResponseEntity.ok(&quot;Deleted&quot;);</span>

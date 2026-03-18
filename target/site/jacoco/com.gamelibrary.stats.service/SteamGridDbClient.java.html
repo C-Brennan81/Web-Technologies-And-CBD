@@ -3,20 +3,25 @@
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @Component
 public class SteamGridDbClient {
 
-<span class="fc" id="L19">    private static final Logger log = LoggerFactory.getLogger(SteamGridDbClient.class);</span>
+<span class="fc" id="L24">    private static final Logger log = LoggerFactory.getLogger(SteamGridDbClient.class);</span>
 
     private final RestTemplate restTemplate;
 
@@ -24,102 +29,127 @@ public class SteamGridDbClient {
     private String apiKey;
 
     public SteamGridDbClient() {
-<span class="fc" id="L27">        this(new RestTemplate());</span>
-<span class="fc" id="L28">    }</span>
+<span class="fc" id="L32">        this(new RestTemplate());</span>
+<span class="fc" id="L33">    }</span>
 
-<span class="fc" id="L30">    public SteamGridDbClient(RestTemplate restTemplate) {</span>
-<span class="fc" id="L31">        this.restTemplate = restTemplate;</span>
-<span class="fc" id="L32">    }</span>
+<span class="fc" id="L35">    public SteamGridDbClient(RestTemplate restTemplate) {</span>
+<span class="fc" id="L36">        this.restTemplate = restTemplate;</span>
+<span class="fc" id="L37">    }</span>
 
-    /**
-     * Returns a single best cover URL (grid) for a game name, or null if not found.
-     */
     public String findCoverUrlByName(String gameName) {
         try {
-<span class="fc" id="L39">            Integer gameId = searchGameId(gameName);</span>
-<span class="fc bfc" id="L40" title="All 2 branches covered.">            if (gameId == null) {</span>
-<span class="fc" id="L41">                log.debug(&quot;[SteamGridDB] No gameId found for '{}'&quot;, gameName);</span>
-<span class="fc" id="L42">                return null;</span>
+<span class="fc" id="L41">            Integer gameId = searchGameId(gameName);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">            if (gameId == null) {</span>
+<span class="fc" id="L43">                log.debug(&quot;[SteamGridDB] No gameId found for '{}'&quot;, gameName);</span>
+<span class="fc" id="L44">                return null;</span>
             }
 
-<span class="fc" id="L45">            String url = fetchBestGrid(gameId);</span>
-<span class="fc bfc" id="L46" title="All 2 branches covered.">            if (url == null) {</span>
-<span class="fc" id="L47">                url = fetchBestGrid(gameId, false);</span>
+<span class="fc" id="L47">            String url = fetchBestGrid(gameId);</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">            if (url == null) {</span>
+<span class="fc" id="L49">                url = fetchBestGrid(gameId, false);</span>
             }
-<span class="fc bfc" id="L49" title="All 2 branches covered.">            if (url == null) {</span>
-<span class="fc" id="L50">                log.debug(&quot;[SteamGridDB] No grid found for '{}' (id={})&quot;, gameName, gameId);</span>
+
+<span class="fc bfc" id="L52" title="All 2 branches covered.">            if (url == null) {</span>
+<span class="fc" id="L53">                log.debug(&quot;[SteamGridDB] No grid found for '{}' (id={})&quot;, gameName, gameId);</span>
             }
-<span class="fc" id="L52">            return url;</span>
-<span class="nc" id="L53">        } catch (Exception e) {</span>
-<span class="nc" id="L54">            log.warn(&quot;[SteamGridDB] Error while fetching cover for '{}': {}&quot;, gameName, e.toString());</span>
-<span class="nc" id="L55">            return null;</span>
+<span class="fc" id="L55">            return url;</span>
+<span class="nc" id="L56">        } catch (Exception e) {</span>
+<span class="nc" id="L57">            log.warn(&quot;[SteamGridDB] Error while fetching cover for '{}': {}&quot;, gameName, e.toString());</span>
+<span class="nc" id="L58">            return null;</span>
         }
     }
 
     private Integer searchGameId(String gameName) {
-<span class="fc" id="L60">        String encoded = URLEncoder.encode(gameName, StandardCharsets.UTF_8);</span>
-<span class="fc" id="L61">        String url = &quot;https://www.steamgriddb.com/api/v2/search/autocomplete/&quot; + encoded;</span>
+<span class="fc" id="L63">        String encoded = URLEncoder.encode(gameName, StandardCharsets.UTF_8);</span>
+<span class="fc" id="L64">        String url = &quot;https://www.steamgriddb.com/api/v2/search/autocomplete/&quot; + encoded;</span>
 
-<span class="fc" id="L63">        Map&lt;?, ?&gt; json = getJson(url);</span>
-<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (json == null) return null;</span>
+<span class="fc" id="L66">        Map&lt;String, Object&gt; json = getJson(url);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        if (json.isEmpty()) {</span>
+<span class="fc" id="L68">            return null;</span>
+        }
 
-<span class="fc" id="L66">        Object dataObj = json.get(&quot;data&quot;);</span>
-<span class="pc bpc" id="L67" title="1 of 4 branches missed.">        if (!(dataObj instanceof List&lt;?&gt; data) || data.isEmpty()) return null;</span>
+<span class="fc" id="L71">        Object dataObj = json.get(&quot;data&quot;);</span>
+<span class="pc bpc" id="L72" title="1 of 4 branches missed.">        if (!(dataObj instanceof List&lt;?&gt; data) || data.isEmpty()) {</span>
+<span class="fc" id="L73">            return null;</span>
+        }
 
-<span class="fc" id="L69">        Object first = data.get(0);</span>
-<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        if (!(first instanceof Map&lt;?, ?&gt; firstMap)) return null;</span>
+<span class="fc" id="L76">        Object first = data.get(0);</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (!(first instanceof Map&lt;?, ?&gt; firstMap)) {</span>
+<span class="nc" id="L78">            return null;</span>
+        }
 
-<span class="fc" id="L72">        Object idObj = firstMap.get(&quot;id&quot;);</span>
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (idObj instanceof Number n) return n.intValue();</span>
+<span class="fc" id="L81">        Object idObj = firstMap.get(&quot;id&quot;);</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (idObj instanceof Number number) {</span>
+<span class="fc" id="L83">            return number.intValue();</span>
+        }
 
-<span class="nc" id="L75">        return null;</span>
+<span class="nc" id="L86">        return null;</span>
     }
 
     private String fetchBestGrid(int gameId) {
-<span class="fc" id="L79">        return fetchBestGrid(gameId, true);</span>
+<span class="fc" id="L90">        return fetchBestGrid(gameId, true);</span>
     }
 
     private String fetchBestGrid(int gameId, boolean withDimensions) {
-<span class="fc" id="L83">        String url = &quot;https://www.steamgriddb.com/api/v2/grids/game/&quot; + gameId</span>
-<span class="fc bfc" id="L84" title="All 2 branches covered.">                + (withDimensions ? &quot;?dimensions=600x900&quot; : &quot;&quot;);</span>
+<span class="fc" id="L94">        String url = &quot;https://www.steamgriddb.com/api/v2/grids/game/&quot; + gameId</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">                + (withDimensions ? &quot;?dimensions=600x900&quot; : &quot;&quot;);</span>
 
-<span class="fc" id="L86">        Map&lt;?, ?&gt; json = getJson(url);</span>
-<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        if (json == null) return null;</span>
+<span class="fc" id="L97">        Map&lt;String, Object&gt; json = getJson(url);</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if (json.isEmpty()) {</span>
+<span class="nc" id="L99">            return null;</span>
+        }
 
-<span class="fc" id="L89">        Object dataObj = json.get(&quot;data&quot;);</span>
-<span class="pc bpc" id="L90" title="1 of 4 branches missed.">        if (!(dataObj instanceof List&lt;?&gt; data) || data.isEmpty()) return null;</span>
+<span class="fc" id="L102">        Object dataObj = json.get(&quot;data&quot;);</span>
+<span class="pc bpc" id="L103" title="1 of 4 branches missed.">        if (!(dataObj instanceof List&lt;?&gt; data) || data.isEmpty()) {</span>
+<span class="fc" id="L104">            return null;</span>
+        }
 
-<span class="fc" id="L92">        Object first = data.get(0);</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (!(first instanceof Map&lt;?, ?&gt; firstMap)) return null;</span>
+<span class="fc" id="L107">        Object first = data.get(0);</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (!(first instanceof Map&lt;?, ?&gt; firstMap)) {</span>
+<span class="nc" id="L109">            return null;</span>
+        }
 
-<span class="fc" id="L95">        Object urlObj = firstMap.get(&quot;url&quot;);</span>
-<span class="pc bpc" id="L96" title="1 of 4 branches missed.">        if (urlObj instanceof String s &amp;&amp; !s.isBlank()) return s;</span>
+<span class="fc" id="L112">        Object urlObj = firstMap.get(&quot;url&quot;);</span>
+<span class="pc bpc" id="L113" title="1 of 4 branches missed.">        if (urlObj instanceof String value &amp;&amp; !value.isBlank()) {</span>
+<span class="fc" id="L114">            return value;</span>
+        }
 
-<span class="fc" id="L98">        Object thumbObj = firstMap.get(&quot;thumb&quot;);</span>
-<span class="pc bpc" id="L99" title="2 of 4 branches missed.">        return (thumbObj instanceof String ts &amp;&amp; !ts.isBlank()) ? ts : null;</span>
+<span class="fc" id="L117">        Object thumbObj = firstMap.get(&quot;thumb&quot;);</span>
+<span class="pc bpc" id="L118" title="2 of 4 branches missed.">        if (thumbObj instanceof String value &amp;&amp; !value.isBlank()) {</span>
+<span class="fc" id="L119">            return value;</span>
+        }
+
+<span class="nc" id="L122">        return null;</span>
     }
 
-    private Map&lt;?, ?&gt; getJson(String url) {
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private Map&lt;String, Object&gt; getJson(String url) {
         try {
-<span class="fc" id="L104">            HttpHeaders headers = new HttpHeaders();</span>
-<span class="fc" id="L105">            headers.setBearerAuth(apiKey);</span>
-<span class="fc" id="L106">            headers.setAccept(List.of(MediaType.APPLICATION_JSON));</span>
+<span class="fc" id="L128">            HttpHeaders headers = new HttpHeaders();</span>
+<span class="fc" id="L129">            headers.setBearerAuth(apiKey);</span>
+<span class="fc" id="L130">            headers.setAccept(List.of(MediaType.APPLICATION_JSON));</span>
 
-<span class="fc" id="L108">            HttpEntity&lt;Void&gt; entity = new HttpEntity&lt;&gt;(headers);</span>
+<span class="fc" id="L132">            HttpEntity&lt;Void&gt; entity = new HttpEntity&lt;&gt;(headers);</span>
 
-<span class="fc" id="L110">            ResponseEntity&lt;Map&gt; resp = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);</span>
+<span class="fc" id="L134">            ResponseEntity&lt;Map&lt;String, Object&gt;&gt; response = restTemplate.exchange(</span>
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    (Class&lt;Map&lt;String, Object&gt;&gt;) (Class&lt;?&gt;) Map.class
+            );
 
-<span class="pc bpc" id="L112" title="1 of 2 branches missed.">            if (!resp.getStatusCode().is2xxSuccessful()) {</span>
-<span class="nc" id="L113">                log.warn(&quot;[SteamGridDB] Non-2xx status {} for URL {}&quot;, resp.getStatusCode(), url);</span>
-<span class="nc" id="L114">                return null;</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">            if (!response.getStatusCode().is2xxSuccessful()) {</span>
+<span class="nc" id="L142">                log.warn(&quot;[SteamGridDB] Non-2xx status {} for URL {}&quot;, response.getStatusCode(), url);</span>
+<span class="nc" id="L143">                return Collections.emptyMap();</span>
             }
-<span class="fc" id="L116">            return resp.getBody();</span>
-<span class="fc" id="L117">        } catch (RestClientException ex) {</span>
-<span class="fc" id="L118">            log.warn(&quot;[SteamGridDB] HTTP error for URL {}: {}&quot;, url, ex.toString());</span>
-<span class="fc" id="L119">            return null;</span>
-<span class="nc" id="L120">        } catch (Exception ex) {</span>
-<span class="nc" id="L121">            log.warn(&quot;[SteamGridDB] Unexpected error for URL {}: {}&quot;, url, ex.toString());</span>
-<span class="nc" id="L122">            return null;</span>
+
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">            return response.getBody() != null ? response.getBody() : Collections.emptyMap();</span>
+<span class="fc" id="L147">        } catch (RestClientException ex) {</span>
+<span class="fc" id="L148">            log.warn(&quot;[SteamGridDB] HTTP error for URL {}: {}&quot;, url, ex.toString());</span>
+<span class="fc" id="L149">            return Collections.emptyMap();</span>
+<span class="nc" id="L150">        } catch (Exception ex) {</span>
+<span class="nc" id="L151">            log.warn(&quot;[SteamGridDB] Unexpected error for URL {}: {}&quot;, url, ex.toString());</span>
+<span class="nc" id="L152">            return Collections.emptyMap();</span>
         }
     }
 }
