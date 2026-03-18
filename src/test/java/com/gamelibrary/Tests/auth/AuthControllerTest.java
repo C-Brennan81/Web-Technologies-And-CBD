@@ -1,9 +1,6 @@
 package com.gamelibrary.Tests.auth;
 
 import com.gamelibrary.stats.auth.AuthController;
-import com.gamelibrary.stats.auth.dto.AuthResponse;
-import com.gamelibrary.stats.auth.dto.LoginRequest;
-import com.gamelibrary.stats.auth.dto.RegisterRequest;
 import com.gamelibrary.stats.auth.jwt.JwtService;
 import com.gamelibrary.stats.model.User;
 import com.gamelibrary.stats.repository.UserRepository;
@@ -29,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class AuthControllerTest {
+class AuthControllerTest {
 
     private UserRepository userRepository;
     private PasswordEncoder passwordEncoder;

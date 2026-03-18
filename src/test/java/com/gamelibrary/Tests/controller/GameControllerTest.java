@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = GameLibraryStatsApp.class)
 @AutoConfigureMockMvc
 @WithMockUser(username = "alice")
-public class GameControllerTest {
+class GameControllerTest {
 
     @MockBean
     private GameService gameService;

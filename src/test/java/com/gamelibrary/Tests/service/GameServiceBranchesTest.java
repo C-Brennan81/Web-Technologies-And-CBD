@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-public class GameServiceBranchesTest {
+class GameServiceBranchesTest {
 
     @Mock private GameRepository gameRepository;
     @Mock private LauncherRepository launcherRepository;

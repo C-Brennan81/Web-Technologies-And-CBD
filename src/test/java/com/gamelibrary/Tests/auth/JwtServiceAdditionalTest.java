@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class JwtServiceAdditionalTest {
+ class JwtServiceAdditionalTest {
 
     @Test
     @DisplayName("isValid -> false when token is expired")
-    void expired_token_invalid() throws InterruptedException {
+    void expired_token_invalid() {
         String secret = "0123456789abcdef0123456789abcdef";
         // 0 minutes means immediate expiration; to be safe, use 0 and expect invalid
         JwtService jwt = new JwtService(secret, 0);

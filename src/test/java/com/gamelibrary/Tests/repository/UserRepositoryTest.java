@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = com.gamelibrary.stats.GameLibraryStatsApp.class)
 @ActiveProfiles("test")
-public class UserRepositoryTest {
+ class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;

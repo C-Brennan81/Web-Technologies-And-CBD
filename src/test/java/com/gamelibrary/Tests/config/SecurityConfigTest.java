@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = GameLibraryStatsApp.class)
 @ActiveProfiles("test")
-public class SecurityConfigTest {
+ class SecurityConfigTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
